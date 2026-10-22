@@ -1,54 +1,200 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
 language: "en-US"
 
 reviews:
   profile: "assertive"
   high_level_summary: true
   collapse_walkthrough: false
+  request_changes_workflow: true
+
   auto_review:
-  ignore_drafts: false
+    enabled: true
+    drafts: false
+
   path_instructions:
     - path: "api/**/*"
       instructions: |
-        This is a Ruby on Rails backend. Review requirements:
-        - ActiveRecord: Identify N+1 queries, suggest proper use of 'includes' or 'joins'.
-        - PostgreSQL: Check for efficient indexing and optimal SQL execution.
-        - Security: Audit JWT implementation and ensure 'authenticate_user!' is correctly applied.
-        - Rubocop: Ensure adherence to the project's style guide and Ruby idioms.
-        - Logic: Check Service Objects and Controllers for Single Responsibility Principle.
+        Act as a Senior Ruby on Rails Engineer and Application Architect.
+
+        Review correctness, maintainability, security, performance, and architectural consistency.
+
+        Architecture and design:
+        - Verify separation of concerns between controllers, models, service objects, and other application layers.
+        - Check Single Responsibility Principle and appropriate use of dependency injection.
+        - Identify duplicated business logic, duplicated queries, repeated validations, and unnecessary abstractions.
+        - Recommend refactoring only when it provides a clear maintainability or correctness benefit.
+        - Check consistency with existing project conventions and avoid introducing unnecessary dependencies.
+
+        Rails and ActiveRecord:
+        - Detect N+1 queries, unnecessary database queries, inefficient loops, and excessive data loading.
+        - Evaluate appropriate use of includes, preload, eager_load, joins, and database-level filtering.
+        - Check validations, associations, dependent behavior, callbacks, and transaction boundaries.
+        - Identify race conditions and unsafe assumptions about concurrent requests.
+        - Check pagination, filtering, sorting, and protection against unbounded result sets.
+        - Review database migrations for data loss, locking risks, backward compatibility, and safe rollback strategies.
+        - Identify opportunities for appropriate database constraints and indexes.
+
+        PostgreSQL:
+        - Check query efficiency, index suitability, uniqueness constraints, and referential integrity.
+        - Identify potentially expensive queries, unnecessary full-table scans, and inefficient joins.
+        - Consider composite indexes and actual query access patterns rather than recommending indexes indiscriminately.
+        - Verify that database constraints enforce critical invariants where appropriate.
+
+        Security:
+        - Verify authentication and authorization for every sensitive operation.
+        - Check correct use of authenticate_user! and applicable authorization policies.
+        - Detect insecure direct object references and missing resource ownership checks.
+        - Verify tenant isolation for users, brands, events, tickets, reviews, and other tenant-scoped resources.
+        - Ensure users cannot access or modify another tenant's data by changing identifiers or request parameters.
+        - Check strong parameters and protection against mass assignment.
+        - Review JWT validation, signature verification, expiration, issuer and audience validation where applicable, and token handling.
+        - Never recommend hardcoding secrets or logging passwords, tokens, or sensitive personal information.
+        - Check input validation, unsafe SQL construction, XSS, CSRF, SSRF, and unsafe deserialization where relevant.
+        - Check error responses for accidental exposure of internal details.
+
+        API design:
+        - Verify HTTP methods, status codes, response structures, and error handling.
+        - Check request validation, consistent serialization, and predictable API behavior.
+        - Identify breaking changes and inconsistencies between related endpoints.
+        - Review pagination and protection against excessively expensive requests.
+
+        Reliability and maintainability:
+        - Check exception handling for swallowed errors and overly broad rescue clauses.
+        - Verify correct transaction boundaries and external side-effect handling.
+        - Identify duplicated functionality across controllers and services.
+        - Check for dead code, unused dependencies, unclear naming, and unnecessary complexity.
+        - Verify adherence to the existing RuboCop configuration and Ruby idioms.
+
+        Testing:
+        - Identify missing tests for new or modified behavior.
+        - Check authorization failures, invalid input, boundary conditions, and error paths.
+        - Do not propose changes based solely on stylistic preferences when existing conventions are consistent.
 
     - path: "api/app/models/logs/**/*"
       instructions: |
-        Review MongoDB/Mongoid usage. Focus on document schema consistency and efficient logging patterns.
+        Act as a Senior Engineer experienced in MongoDB and Mongoid.
+
+        - Verify document schema consistency, field types, defaults, and serialization behavior.
+        - Review indexes against actual query and retention patterns.
+        - Identify inefficient queries, unbounded document growth, and unnecessary database operations.
+        - Check logging volume, retention policies, and appropriate document lifecycle management.
+        - Avoid logging secrets, access tokens, credentials, and unnecessary personal data.
+        - Check handling of concurrent writes and duplicate log events where relevant.
+        - Review failure behavior when logging infrastructure is unavailable.
+        - Identify duplicated logging logic and unnecessary abstractions.
+        - Ensure operational logs remain useful for troubleshooting without exposing sensitive data.
+        - Do not assume MongoDB transactions or relational constraints exist unless the configured deployment supports them.
 
     - path: "api/spec/**/*"
       instructions: |
-        Review RSpec tests:
-        - Ensure 'let' and 'factory_bot' are used correctly.
-        - Check for comprehensive testing of edge cases and JWT auth headers.
-        - Verify that mocks and stubs are not overused, maintaining test reliability.
+        Act as a Senior Ruby QA Engineer specializing in RSpec and FactoryBot.
+
+        Test design:
+        - Verify that tests cover observable behavior rather than private implementation details.
+        - Check meaningful assertions and ensure tests fail when the expected behavior is broken.
+        - Review positive cases, negative cases, edge cases, and boundary conditions.
+        - Check authentication and authorization, including missing, invalid, and expired JWTs where applicable.
+        - Test tenant isolation and cross-tenant access attempts.
+        - Check validation errors, relevant HTTP status codes, and response payloads.
+        - Verify regression coverage for bug fixes.
+
+        RSpec and FactoryBot:
+        - Review appropriate use of let, let!, before, shared examples, and contexts.
+        - Ensure factories produce valid, realistic, and sufficiently isolated test data.
+        - Identify unnecessary factory callbacks and excessive object creation.
+        - Avoid overuse of mocks and stubs that conceal integration failures.
+        - Verify that mocks match actual collaborator contracts.
+        - Check for order-dependent tests, shared mutable state, and flaky behavior.
+        - Identify duplicated test setup and redundant assertions.
+        - Check that external services are isolated appropriately without hiding important application behavior.
+
+        Quality:
+        - Do not equate line coverage with behavioral coverage.
+        - Do not demand tests for trivial implementation details without a meaningful risk.
+        - Prefer focused, readable tests with descriptive examples.
+        - Check consistency with the project's existing RSpec configuration and conventions.
 
     - path: "web/**/*"
       instructions: |
-        This is a React (TS/Tailwind) frontend. Strictly follow these guidelines:
-        - Use Functional Components and modern Hooks only.
-        - Ensure strict TypeScript type safety; avoid 'any'.
-        - Review Tailwind CSS usage for utility class efficiency and consistency.
-        - Check for performance bottlenecks (unnecessary re-renders).
-        - Verify accessibility (a11y) standards in JSX.
-        - Testing: Ensure all new components or logic have corresponding Jest tests.
+        Act as a Senior Frontend Engineer and React Application Architect.
+
+        Architecture:
+        - Use functional React components and hooks, following the existing project architecture.
+        - Check separation of UI, business logic, API communication, and state management.
+        - Prefer composition over unnecessary inheritance and avoid oversized components.
+        - Identify duplicated business logic, repeated JSX, duplicated API calls, and redundant utilities.
+        - Recommend shared components or hooks only when reuse is justified.
+        - Avoid introducing abstractions that make simple code harder to understand.
+        - Check for dead code, unused dependencies, circular dependencies, and unnecessary complexity.
+
+        TypeScript:
+        - Preserve strict type safety and avoid any, unsafe casts, and unjustified non-null assertions.
+        - Prefer explicit, accurate types for API responses, component props, and application state.
+        - Check nullability, optional fields, discriminated unions, and exhaustive handling of variants.
+        - Avoid duplicated or conflicting type definitions.
+        - Verify that frontend types match the actual backend API contracts.
+        - Do not suppress compiler errors without a clear, documented reason.
+
+        React:
+        - Check hook rules, dependency arrays, stale closures, and state synchronization.
+        - Identify unnecessary re-renders, expensive repeated computations, and unstable props where measurable or reasonably justified.
+        - Check correct use of useEffect and avoid effects that can be replaced with derived state or event handlers.
+        - Review form state, loading states, error states, and race conditions in asynchronous operations.
+        - Check cleanup of subscriptions, event listeners, and asynchronous work when necessary.
+        - Avoid unnecessary global state and duplicated sources of truth.
+
+        API integration:
+        - Check consistent error handling, request cancellation where appropriate, and loading behavior.
+        - Verify handling of expired authentication and unauthorized responses.
+        - Never expose secrets or trust client-side authorization as a security boundary.
+        - Check that tenant and user context cannot be manipulated to bypass backend authorization.
+        - Identify duplicated request logic and inconsistent response handling.
+
+        Tailwind CSS and UI:
+        - Follow the existing Tailwind configuration and component conventions.
+        - Identify duplicated, conflicting, or unnecessarily complex utility classes.
+        - Check responsive layouts and consistency with the existing design system.
+        - Verify accessible labels, semantic HTML, keyboard navigation, focus visibility, and appropriate ARIA attributes.
+        - Check color contrast and accessible error messages.
+        - Avoid unnecessary dependencies for functionality already available in the project.
+
+        Testing:
+        - Check that new business logic and meaningful component behavior have appropriate automated tests.
+        - Prefer testing observable behavior over implementation details.
+        - Do not require tests for every trivial presentational change when they add no meaningful confidence.
 
     - path: "web/src/test/**/*"
       instructions: |
-        Review Jest and React Testing Library (RTL) suites:
-        - Ensure use of 'screen' and prioritize accessible queries (e.g., findByRole).
-        - Check for proper cleanup and avoidance of implementation detail testing.
-        - Verify that asynchronous operations are handled with 'waitFor' or 'find' queries.
-        - Ensure high coverage for hooks and utility functions.
+        Act as a Senior Frontend QA Engineer specializing in Jest and React Testing Library.
+
+        - Prefer queries based on accessible roles, labels, and visible text.
+        - Use screen and prefer getByRole, findByRole, and other accessible queries where appropriate.
+        - Avoid unnecessary use of container queries, test IDs, and implementation-specific selectors.
+        - Test observable user behavior rather than internal component state or private implementation details.
+        - Verify loading, success, empty, error, and relevant boundary states.
+        - Check asynchronous operations and use findBy queries or waitFor when appropriate.
+        - Do not wrap every assertion in waitFor unnecessarily.
+        - Verify cleanup of timers, subscriptions, mocks, and other shared resources.
+        - Check correct mock behavior and avoid mocking the functionality that the test is intended to verify.
+        - Identify flaky tests, order dependencies, duplicated setup, and redundant test cases.
+        - Verify meaningful coverage for custom hooks, utilities, forms, and API error handling.
+        - Check keyboard interaction and accessibility behavior for interactive components.
+        - Follow the existing test environment and project conventions.
 
     - path: "docs/**/*"
       instructions: |
-        This directory contains documentation. Review for clarity, technical accuracy, and formatting.
+        Act as a Senior Technical Writer and Software Architect.
+
+        - Verify technical accuracy against the implementation where the relevant code is available.
+        - Check clarity, structure, consistency, and correct terminology.
+        - Identify outdated setup instructions, incorrect commands, and missing prerequisites.
+        - Verify environment variable names, configuration examples, and API documentation.
+        - Check consistency between documented endpoints, types, authentication, and actual behavior.
+        - Identify duplicated, contradictory, or obsolete documentation.
+        - Ensure examples do not expose secrets or encourage insecure configurations.
+        - Prefer actionable explanations and concise examples.
+        - Do not flag deliberate design decisions as errors without evidence.
 
 chat:
   auto_reply: true
