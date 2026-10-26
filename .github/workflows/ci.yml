@@ -8,7 +8,9 @@ on:
 jobs:
   scan_ruby:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: api
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -26,6 +28,9 @@ jobs:
       
   lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
@@ -52,7 +57,9 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: api
     services:
       postgres:
         image: postgres
