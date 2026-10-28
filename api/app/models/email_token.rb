@@ -22,3 +22,4 @@ class EmailToken < ApplicationRecord
     !used? && !expired?
   end
 end
+

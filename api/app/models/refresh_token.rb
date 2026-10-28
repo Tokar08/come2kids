@@ -19,3 +19,4 @@ class RefreshToken < ApplicationRecord
     !revoked? && !expired?
   end
 end
+

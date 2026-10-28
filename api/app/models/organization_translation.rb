@@ -10,3 +10,4 @@ class OrganizationTranslation < ApplicationRecord
   scope :uk, -> { where(locale: "uk") }
   scope :en, -> { where(locale: "en") }
 end
+

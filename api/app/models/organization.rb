@@ -27,3 +27,5 @@ class Organization < ApplicationRecord
     status == "blocked"
   end
 end
+
+
