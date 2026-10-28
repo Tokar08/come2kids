@@ -15,3 +15,4 @@ class CreateOrganizationManagers < ActiveRecord::Migration[8.0]
     add_index :organization_managers, :user_id
   end
 end
+
