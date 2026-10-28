@@ -12,4 +12,3 @@ class OrganizationManager < ApplicationRecord
     errors.add(:user_id, :owner_cannot_be_manager)
   end
 end
-

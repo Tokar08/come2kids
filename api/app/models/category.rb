@@ -6,4 +6,3 @@ class Category < ApplicationRecord
 
   scope :ordered, -> { order(position: :asc) }
 end
-

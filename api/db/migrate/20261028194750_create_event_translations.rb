@@ -7,10 +7,8 @@ class CreateEventTranslations < ActiveRecord::Migration[8.0]
       t.text :description
       t.timestamps
 
-      t.index [:event_id, :locale], unique: true
+      t.index [ :event_id, :locale ], unique: true
       t.check_constraint "locale IN ('uk', 'en')", name: "chk_event_translations_locale"
     end
   end
 end
-
-

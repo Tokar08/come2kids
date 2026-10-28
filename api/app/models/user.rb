@@ -37,4 +37,3 @@ class User < ApplicationRecord
     errors.add(:password, :complexity)
   end
 end
-

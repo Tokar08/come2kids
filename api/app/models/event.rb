@@ -32,4 +32,3 @@ class Event < ApplicationRecord
     errors.add(:end_at, "must be after start_at") if end_at <= start_at
   end
 end
-

@@ -7,9 +7,8 @@ class CreateOrganizationTranslations < ActiveRecord::Migration[8.0]
       t.text :description
       t.timestamps
 
-      t.index [:organization_id, :locale], unique: true
+      t.index [ :organization_id, :locale ], unique: true
       t.check_constraint "locale IN ('uk', 'en')", name: "chk_org_translations_locale"
     end
   end
 end
-
