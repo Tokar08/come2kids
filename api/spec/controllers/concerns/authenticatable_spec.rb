@@ -1,7 +1,14 @@
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Authenticatable, type: :controller do
   controller(ApplicationController) do
+    include ErrorHandling
+
+    # ДОДАЙ цей порожній метод, щоб "заглушити" Pundit і уникнути помилок
+    def verify_authorized; end
+
     before_action :authenticate_user!
 
     def index

@@ -1,4 +1,6 @@
-require "active_support/core_ext/integer/time"
+# frozen_string_literal: true
+
+require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -17,8 +19,8 @@ Rails.application.configure do
 
   # Enable/disable Action Controller caching. By default Action Controller caching is disabled.
   # Run rails dev:cache to toggle Action Controller caching.
-  if Rails.root.join("tmp/caching-dev.txt").exist?
-    config.public_file_server.headers = { "cache-control" => "public, max-age=#{2.days.to_i}" }
+  if Rails.root.join('tmp/caching-dev.txt').exist?
+    config.public_file_server.headers = { 'cache-control' => "public, max-age=#{2.days.to_i}" }
   else
     config.action_controller.perform_caching = false
   end
@@ -27,16 +29,33 @@ Rails.application.configure do
   config.cache_store = :memory_store
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
+  config.active_storage.service = :cloudflare
 
-  # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  # Deliver via SMTP (Mailpit locally / Compose, or real SMTP via env).
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.smtp_settings = {
+    address: ENV.fetch('SMTP_ADDRESS', ENV.fetch('MAIL_HOST', 'localhost')),
+    port: ENV.fetch('SMTP_PORT', ENV.fetch('MAIL_PORT', 1025)).to_i,
+    domain: ENV.fetch('SMTP_DOMAIN', ENV.fetch('MAIL_DOMAIN', 'localhost')),
+    user_name: ENV['SMTP_USER_NAME'] || ENV['SMTP_USER'],
+    password: ENV['SMTP_PASSWORD'],
+    authentication: ENV.fetch('SMTP_AUTHENTICATION', 'plain').to_sym,
+    enable_starttls_auto: ENV.fetch('SMTP_ENABLE_STARTTLS_AUTO', 'false') == 'true'
+  }
 
   # Make template changes take effect immediately.
   config.action_mailer.perform_caching = false
 
   # Set localhost to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+  config.action_mailer.default_url_options = {
+    host: ENV.fetch('MAILER_DEFAULT_HOST', 'localhost'),
+    port: ENV.fetch('MAILER_DEFAULT_PORT', 3000).to_i
+  }
+
+  # Active Job via Sidekiq (requires Redis + a Sidekiq process).
+  config.active_job.queue_adapter = :sidekiq
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

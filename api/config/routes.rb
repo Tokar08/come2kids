@@ -1,25 +1,53 @@
+# frozen_string_literal: true
+
+require "sidekiq/web"
+require "sidekiq/cron/web"
+
 Rails.application.routes.draw do
+  get "/users/me", to: "users#show"
+  put "/users/me", to: "users#update"
+
   if Rails.env.development? || Rails.env.test?
     mount Rswag::Ui::Engine => "/api-docs"
     mount Rswag::Api::Engine => "/api-docs"
   end
 
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
-  namespace :api do
-    namespace :v1 do
-      scope :auth, controller: :auth, as: :auth do
-        post :login
-      end
-
-      resources :events, only: [ :index ]
+  # Sidekiq Web UI — protect with HTTP Basic when credentials are configured.
+  if ENV["SIDEKIQ_USERNAME"].present? && ENV["SIDEKIQ_PASSWORD"].present?
+    Sidekiq::Web.use(Rack::Auth::Basic) do |username, password|
+      ActiveSupport::SecurityUtils.secure_compare(
+        ::Digest::SHA256.hexdigest(username),
+        ::Digest::SHA256.hexdigest(ENV.fetch("SIDEKIQ_USERNAME"))
+      ) & ActiveSupport::SecurityUtils.secure_compare(
+        ::Digest::SHA256.hexdigest(password),
+        ::Digest::SHA256.hexdigest(ENV.fetch("SIDEKIQ_PASSWORD"))
+      )
     end
   end
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  mount Sidekiq::Web => "/sidekiq"
+
+  namespace :api do
+    namespace :v1 do
+      # Логін поза namespace :auth, бо контролер на рівень вище
+      post "auth/login", to: "auth#login"
+
+      namespace :auth do
+        post "register", to: "registrations#create"
+        post "confirm-email", to: "email_confirmations#confirm"
+        post "resend-confirmation", to: "email_confirmations#resend"
+      end
+
+      resources :events, only: [ :index ]
+
+      if Rails.env.development?
+        namespace :dev do
+          post "confirmation-token", to: "tokens#confirmation_token"
+        end
+      end
+    end
+  end
 end

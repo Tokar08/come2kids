@@ -10,11 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_162731) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
-  enable_extension "pg_trgm"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -78,7 +77,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
     t.datetime "updated_at", null: false
     t.index ["event_id", "locale"], name: "index_event_translations_on_event_id_and_locale", unique: true
     t.index ["event_id"], name: "index_event_translations_on_event_id"
-    t.index ["title"], name: "index_event_translations_on_title_trgm", opclass: :gin_trgm_ops, using: :gin
     t.check_constraint "locale::text = ANY (ARRAY['uk'::character varying::text, 'en'::character varying::text])", name: "chk_event_translations_locale"
   end
 
