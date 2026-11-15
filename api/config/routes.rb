@@ -15,6 +15,8 @@ Rails.application.routes.draw do
       scope :auth, controller: :auth, as: :auth do
         post :login
       end
+
+      resources :events, only: [ :index ]
     end
   end
 
