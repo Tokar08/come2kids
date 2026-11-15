@@ -1,5 +1,6 @@
-class OrderCreationService
+# frozen_string_literal: true
 
+class OrderCreationService
   class EventNotPublishedError < StandardError; end
   class TicketsSoldOutError < StandardError; end
 
@@ -19,19 +20,18 @@ class OrderCreationService
 
 
     Order.transaction do
-
       ticket_type = TicketType.lock.find(@ticket_type_id)
 
       if ticket_type.sold_quantity + @quantity > ticket_type.total_quantity
-        raise TicketsSoldOutError, "Not enough tickets available"
+        raise TicketsSoldOutError, 'Not enough tickets available'
       end
 
 
       total_amount = ticket_type.price * @quantity
-      status = total_amount.zero? ? "paid" : "pending"
-      
+      status = total_amount.zero? ? 'paid' : 'pending'
 
-      reserved_until = status == "pending" ? 15.minutes.from_now : nil
+
+      reserved_until = status == 'pending' ? 15.minutes.from_now : nil
 
       order = Order.create!(
         user: @user,

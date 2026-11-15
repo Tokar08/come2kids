@@ -8,7 +8,7 @@ module Api
         with: -> { render_too_many_requests }
       rate_limit to: 20, within: 1.minute, only: :login, name: 'login-by-ip',
         with: -> { render_too_many_requests }
-        
+
       skip_after_action :verify_authorized
 
       def login
