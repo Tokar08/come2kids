@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   get "/users/me", to: "users#show"
   put "/users/me", to: "users#update"
+  
   if Rails.env.development? || Rails.env.test?
     mount Rswag::Ui::Engine => "/api-docs"
     mount Rswag::Api::Engine => "/api-docs"
@@ -17,6 +18,10 @@ Rails.application.routes.draw do
         post "register", to: "registrations#create"
         post "confirm-email", to: "email_confirmations#confirm"
         post "resend-confirmation", to: "email_confirmations#resend"
+      end
+
+      resources :events, only: [] do
+        resources :orders, only: [:create]
       end
 
       if Rails.env.development?
