@@ -18,7 +18,6 @@ module Accounts
 
       raise ApiError.new(:token_invalid) if user.nil?
 
-      # Використовуємо update! щоб спрацював rescue в контролері при помилці валідації
       user.update!(password: @new_password, password_confirmation: @password_confirmation)
 
       revoke_refresh_tokens(user)
@@ -29,8 +28,6 @@ module Accounts
     private
 
     def revoke_refresh_tokens(user)
-      # БЕЗПЕЧНА ЗАГЛУШКА: просто логуємо, щоб уникнути 500 помилок
-      # Пізніше тут буде реальна логіка видалення з Redis
       Rails.logger.info("[ResetPassword] Mock revoking refresh tokens for user #{user.id}")
     end
   end
