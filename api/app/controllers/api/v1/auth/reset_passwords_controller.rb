@@ -7,15 +7,23 @@ module Api
         skip_after_action :verify_authorized
 
         def create
-          Accounts::ResetPassword.call(
-            params.require(:token).to_s,
-            params.require(:password),
-            params.require(:password_confirmation)
-          )
+          token = params.require(:token)
+          password = params.require(:password)
+          password_confirmation = params[:password_confirmation]
+
+          Accounts::ResetPassword.call(token, password, password_confirmation)
 
           render json: { message: I18n.t('auth.password_reset_success') }, status: :ok
+        rescue ActionController::ParameterMissing => e
+          render json: { code: 'PARAMETER_MISSING', message: e.message }, status: :bad_request
         rescue ActiveRecord::RecordInvalid => e
-          render_validation_error(e)
+          render json: {
+            message: I18n.t('api_errors.validation_error'),
+            code: 'VALIDATION_ERROR',
+            details: e.record.errors.map { |err| { field: err.attribute, error: err.type } }
+          }, status: :unprocessable_content
+        rescue ApiError => e
+          render json: { code: e.code.to_s.upcase }, status: e.status || :unprocessable_content
         end
       end
     end
