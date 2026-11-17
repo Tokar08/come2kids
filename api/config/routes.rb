@@ -43,6 +43,8 @@ Rails.application.routes.draw do
         post "reset-password", to: "reset_passwords#create"
       end
 
+      resources :events, only: [ :index ]
+
       if Rails.env.development?
         namespace :dev do
           post "confirmation-token", to: "tokens#confirmation_token"
