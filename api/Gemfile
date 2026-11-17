@@ -31,7 +31,7 @@ gem 'solid_cable'
 # Background jobs (Active Job) via Sidekiq + Redis
 gem 'sidekiq', '~> 7.3'
 gem 'sidekiq-cron', '~> 2.0'
-gem 'redis', '~> 5.0'
+gem 'redis', '~> 6.0'
 
 # Activity / failure logs in MongoDB
 gem 'mongoid', '~> 9.1'
