@@ -44,7 +44,7 @@ module Events
           return
         end
 
-        @media.errors.add(:file, 'must be less than 5MB') if @upload.size > EventMedia::MAX_BYTE_SIZE
+        @media.errors.add(:file, EventMedia.file_too_large_message) if @upload.size > EventMedia::MAX_BYTE_SIZE
         return if EventMedia::CONTENT_TYPES.include?(@upload.content_type)
 
         @media.errors.add(:file, 'must be JPEG, PNG, or WEBP')
@@ -54,7 +54,7 @@ module Events
         return unless @kind == 'gallery'
         return if @event.event_media.gallery.count < EventMedia::MAX_GALLERY_IMAGES
 
-        @media.errors.add(:file, 'gallery cannot have more than 10 images')
+        @media.errors.add(:file, EventMedia.gallery_limit_message)
       end
 
       def store

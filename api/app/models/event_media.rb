@@ -5,8 +5,16 @@ class EventMedia < ApplicationRecord
 
   KINDS = %w[banner gallery].freeze
   CONTENT_TYPES = %w[image/jpeg image/png image/webp].freeze
-  MAX_BYTE_SIZE = 5.megabytes
-  MAX_GALLERY_IMAGES = 10
+  MAX_BYTE_SIZE = Integer(ENV.fetch('EVENT_MEDIA_MAX_BYTE_SIZE', 5.megabytes))
+  MAX_GALLERY_IMAGES = Integer(ENV.fetch('EVENT_MEDIA_MAX_GALLERY_IMAGES', 10))
+
+  def self.file_too_large_message
+    "must be less than #{MAX_BYTE_SIZE} bytes"
+  end
+
+  def self.gallery_limit_message
+    "gallery cannot have more than #{MAX_GALLERY_IMAGES} images"
+  end
 
   belongs_to :event
   has_one_attached :file, dependent: :purge
@@ -28,7 +36,7 @@ class EventMedia < ApplicationRecord
       return
     end
 
-    errors.add(:file, 'must be less than 5MB') if file.blob.byte_size > MAX_BYTE_SIZE
+    errors.add(:file, self.class.file_too_large_message) if file.blob.byte_size > MAX_BYTE_SIZE
     return if CONTENT_TYPES.include?(file.content_type)
 
     errors.add(:file, 'must be JPEG, PNG, or WEBP')
@@ -45,6 +53,6 @@ class EventMedia < ApplicationRecord
     return unless kind == 'gallery' && event.present?
     return if event.event_media.gallery.count < MAX_GALLERY_IMAGES
 
-    errors.add(:file, 'gallery cannot have more than 10 images')
+    errors.add(:file, self.class.gallery_limit_message)
   end
 end

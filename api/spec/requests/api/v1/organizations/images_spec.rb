@@ -202,16 +202,12 @@ RSpec.describe 'Api::V1::Organizations::Images', type: :request do
     end
   end
 
-  def uploaded_file(content_type: 'image/png', body: png_bytes, filename: 'photo.png')
+  def uploaded_file(content_type: 'image/png', body: EventImageFixture::PNG_BYTES, filename: 'photo.png')
     file = Tempfile.new([ 'event-image', File.extname(filename) ])
     file.binmode
     file.write(body)
     file.rewind
     Rack::Test::UploadedFile.new(file.path, content_type, true, original_filename: filename)
-  end
-
-  def png_bytes
-    Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==')
   end
 end
 # rubocop:enable RSpec/MultipleMemoizedHelpers, RSpec/VariableName

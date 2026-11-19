@@ -8,7 +8,7 @@ FactoryBot.define do
 
     after(:build) do |media|
       media.file.attach(
-        io: StringIO.new(Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==')),
+        io: StringIO.new(EventImageFixture::PNG_BYTES),
         filename: 'photo.png',
         content_type: 'image/png'
       )

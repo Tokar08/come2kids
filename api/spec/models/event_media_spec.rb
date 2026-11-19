@@ -5,12 +5,8 @@ require 'rails_helper'
 RSpec.describe EventMedia do
   let(:event) { create(:event, :draft) }
 
-  def attach(media, content_type: 'image/png', body: png_bytes, filename: 'photo.png')
+  def attach(media, content_type: 'image/png', body: EventImageFixture::PNG_BYTES, filename: 'photo.png')
     media.file.attach(io: StringIO.new(body), filename: filename, content_type: content_type)
-  end
-
-  def png_bytes
-    Base64.decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==')
   end
 
   it 'accepts a png gallery image' do
@@ -35,15 +31,15 @@ RSpec.describe EventMedia do
     expect(media.errors[:file]).to include('must be JPEG, PNG, or WEBP')
   end
 
-  it 'rejects a file larger than 5MB' do
+  it 'rejects a file over the size limit' do
     media = event.event_media.build(kind: 'gallery', position: 1)
     attach(media, body: 'a' * (described_class::MAX_BYTE_SIZE + 1))
 
     expect(media).not_to be_valid
-    expect(media.errors[:file]).to include('must be less than 5MB')
+    expect(media.errors[:file]).to include(described_class.file_too_large_message)
   end
 
-  it 'rejects an eleventh gallery image' do
+  it 'rejects a gallery image past the limit' do
     described_class::MAX_GALLERY_IMAGES.times do |index|
       create(:event_medium, event: event, position: index)
     end
@@ -51,7 +47,7 @@ RSpec.describe EventMedia do
     attach(extra)
 
     expect(extra).not_to be_valid
-    expect(extra.errors[:file]).to include('gallery cannot have more than 10 images')
+    expect(extra.errors[:file]).to include(described_class.gallery_limit_message)
   end
 
   it 'rejects a second banner' do
