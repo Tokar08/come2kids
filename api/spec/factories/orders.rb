@@ -2,12 +2,12 @@
 
 FactoryBot.define do
   factory :order do
-    user { nil }
-    event { nil }
-    total_amount { 1 }
-    currency { "MyString" }
-    status { "MyString" }
-    idempotency_key { "MyString" }
-    reserved_until { "2026-11-13 13:34:45" }
+    association :user
+    association :event
+    total_amount { 100 }
+    currency { 'UAH' }
+    status { 'pending' }
+    sequence(:idempotency_key) { |n| "idem-key-#{n}" }
+    reserved_until { 15.minutes.from_now }
   end
 end
