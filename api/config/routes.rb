@@ -45,6 +45,8 @@ Rails.application.routes.draw do
 
       resources :events, only: [ :index ]
 
+      resources :categories, only: [ :index ]
+
       resources :organizations, only: [] do
         resources :events, only: [ :create ], module: :organizations
       end
