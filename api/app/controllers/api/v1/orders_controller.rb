@@ -26,11 +26,9 @@ module Api
       rescue OrderCreationService::IdempotencyConflictError => e
         render_error(code: 'IDEMPOTENCY_CONFLICT', message: e.message, status: :conflict)
       rescue OrderCreationService::TicketsSoldOutError => e
-        render json: { code: 'EVENT_SOLD_OUT', message: e.message }, status: :unprocessable_entity
+        render_error(code: 'EVENT_SOLD_OUT', message: e.message, status: :unprocessable_entity)
       rescue OrderCreationService::EventNotPublishedError, OrderCreationService::InvalidQuantityError => e
-        render json: { code: 'UNPROCESSABLE_ENTITY', message: e.message }, status: :unprocessable_entity
-      rescue ActiveRecord::RecordNotFound => e
-        render json: { code: 'NOT_FOUND', message: e.message }, status: :not_found
+        render_error(code: 'UNPROCESSABLE_ENTITY', message: e.message, status: :unprocessable_entity)
       end
     end
   end
