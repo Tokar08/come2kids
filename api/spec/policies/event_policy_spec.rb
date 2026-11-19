@@ -68,4 +68,37 @@ RSpec.describe EventPolicy do
       end
     end
   end
+
+  describe "#update?" do
+    let(:user) { create(:company_member, :owner, organization: organization).user }
+
+    it "allows a draft and a rejected event" do
+      expect(policy.update?).to be(true)
+
+      event.status = "rejected"
+      expect(policy.update?).to be(true)
+    end
+
+    it "denies review, published, and cancelled events" do
+      %w[under_review published cancelled cancelled_by_organizer].each do |status|
+        event.status = status
+
+        expect(policy.update?).to be(false)
+      end
+    end
+  end
+
+  describe "#submit?" do
+    let(:user) { create(:company_member, :owner, organization: organization).user }
+
+    it "allows an owner of an approved organization" do
+      expect(policy.submit?).to be(true)
+    end
+
+    it "denies a user who is not a member" do
+      stranger = described_class.new(create(:user), event)
+
+      expect(stranger.submit?).to be(false)
+    end
+  end
 end
