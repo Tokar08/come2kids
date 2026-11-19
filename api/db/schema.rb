@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_19_103000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -79,7 +79,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
     t.index ["event_id", "locale"], name: "index_event_translations_on_event_id_and_locale", unique: true
     t.index ["event_id"], name: "index_event_translations_on_event_id"
     t.index ["title"], name: "index_event_translations_on_title_trgm", opclass: :gin_trgm_ops, using: :gin
-    t.check_constraint "locale::text = ANY (ARRAY['uk'::character varying::text, 'en'::character varying::text])", name: "chk_event_translations_locale"
+    t.check_constraint "locale::text = ANY (ARRAY['uk'::character varying, 'en'::character varying]::text[])", name: "chk_event_translations_locale"
   end
 
   create_table "events", force: :cascade do |t|
@@ -111,8 +111,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
     t.index ["start_at"], name: "index_events_on_start_at"
     t.index ["status"], name: "index_events_on_status"
     t.check_constraint "end_at > start_at", name: "chk_events_end_after_start"
-    t.check_constraint "location_type IS NULL OR (location_type::text = ANY (ARRAY['offline'::character varying::text, 'online'::character varying::text]))", name: "chk_events_location_type"
-    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'under_review'::character varying::text, 'published'::character varying::text, 'rejected'::character varying::text, 'cancelled'::character varying::text])", name: "chk_events_status"
+    t.check_constraint "location_type IS NULL OR (location_type::text = ANY (ARRAY['offline'::character varying, 'online'::character varying]::text[]))", name: "chk_events_location_type"
+    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying, 'under_review'::character varying, 'published'::character varying, 'rejected'::character varying, 'cancelled'::character varying]::text[])", name: "chk_events_status"
   end
 
   create_table "organization_translations", force: :cascade do |t|
@@ -124,7 +124,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
     t.datetime "updated_at", null: false
     t.index ["organization_id", "locale"], name: "index_organization_translations_on_organization_id_and_locale", unique: true
     t.index ["organization_id"], name: "index_organization_translations_on_organization_id"
-    t.check_constraint "locale::text = ANY (ARRAY['uk'::character varying::text, 'en'::character varying::text])", name: "chk_org_translations_locale"
+    t.check_constraint "locale::text = ANY (ARRAY['uk'::character varying, 'en'::character varying]::text[])", name: "chk_org_translations_locale"
   end
 
   create_table "organizations", force: :cascade do |t|
@@ -149,7 +149,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
     t.index ["blocked_by_id"], name: "index_organizations_on_blocked_by_id"
     t.index ["slug"], name: "index_organizations_on_slug_active", unique: true, where: "(deleted_at IS NULL)"
     t.index ["status"], name: "index_organizations_on_status"
-    t.check_constraint "status::text = ANY (ARRAY['pending_approval'::character varying::text, 'approved'::character varying::text, 'rejected'::character varying::text, 'blocked'::character varying::text])", name: "chk_organizations_status"
+    t.check_constraint "status::text = ANY (ARRAY['pending_approval'::character varying, 'approved'::character varying, 'rejected'::character varying, 'blocked'::character varying]::text[])", name: "chk_organizations_status"
   end
 
   create_table "roles", force: :cascade do |t|
@@ -159,6 +159,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["key"], name: "index_roles_on_key", unique: true
+  end
+
+  create_table "ticket_types", force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.string "name", limit: 200, null: false
+    t.integer "price", default: 0, null: false
+    t.string "currency", limit: 3, default: "UAH", null: false
+    t.integer "total_quantity", null: false
+    t.integer "sold_quantity", default: 0, null: false
+    t.datetime "sale_start_at"
+    t.datetime "sale_end_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_ticket_types_on_event_id"
+    t.check_constraint "price >= 0", name: "chk_ticket_types_price"
+    t.check_constraint "sold_quantity >= 0 AND sold_quantity <= total_quantity", name: "chk_ticket_types_sold_within_total"
+    t.check_constraint "total_quantity > 0", name: "chk_ticket_types_total_quantity"
   end
 
   create_table "users", force: :cascade do |t|
@@ -182,8 +199,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
     t.datetime "updated_at", null: false
     t.index ["blocked_by_id"], name: "index_users_on_blocked_by_id"
     t.index ["email"], name: "index_users_on_email", unique: true
-    t.check_constraint "platform_role::text = ANY (ARRAY['user'::character varying::text, 'moderator'::character varying::text])", name: "chk_users_platform_role"
-    t.check_constraint "preferred_locale::text = ANY (ARRAY['uk'::character varying::text, 'en'::character varying::text])", name: "chk_users_preferred_locale"
+    t.check_constraint "platform_role::text = ANY (ARRAY['user'::character varying, 'moderator'::character varying]::text[])", name: "chk_users_platform_role"
+    t.check_constraint "preferred_locale::text = ANY (ARRAY['uk'::character varying, 'en'::character varying]::text[])", name: "chk_users_preferred_locale"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -200,5 +217,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
   add_foreign_key "organization_translations", "organizations", on_delete: :cascade
   add_foreign_key "organizations", "users", column: "approved_by_id", on_delete: :nullify
   add_foreign_key "organizations", "users", column: "blocked_by_id", on_delete: :nullify
+  add_foreign_key "ticket_types", "events", on_delete: :cascade
   add_foreign_key "users", "users", column: "blocked_by_id", on_delete: :nullify
 end
