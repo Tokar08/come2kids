@@ -20,6 +20,42 @@ RSpec.describe OrderCreationService, type: :service do
   end
 
   describe '#call' do
+    [ nil, 0, -1, 1.5, '1.5', '2tickets', [], [ '2' ], {}, '' ].each do |quantity|
+      it "rejects malformed quantity #{quantity.inspect}" do
+        expect { call_service(quantity: quantity) }.to raise_error(described_class::InvalidQuantityError)
+      end
+    end
+
+    it 'accepts a positive integer string' do
+      expect(call_service(quantity: '2').order_items.first.quantity).to eq(2)
+    end
+
+    it 'rejects a ticket type belonging to another event' do
+      other_ticket = create(:ticket_type)
+      expect { call_service(target_ticket: other_ticket) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect(other_ticket.reload.sold_quantity).to eq(0)
+    end
+
+    it 'rejects a globally unique key belonging to another user' do
+      existing = create(:order, idempotency_key: 'other-user')
+      expect { call_service(idempotency_key: existing.idempotency_key) }
+        .to raise_error(described_class::IdempotencyConflictError)
+      expect(ticket_type.reload.sold_quantity).to eq(2)
+    end
+
+    it 'replays an order even if its event is no longer published' do
+      existing = create(:order, user: user, event: event, idempotency_key: 'replay')
+      event.update!(status: 'draft')
+      expect(call_service(idempotency_key: 'replay')).to eq(existing)
+    end
+
+    it 'rechecks the key after acquiring the transaction lock before checking inventory' do
+      existing = create(:order, user: user, event: event, idempotency_key: 'racing-key')
+      allow(Order).to receive(:find_by).with(idempotency_key: 'racing-key').and_return(nil, existing)
+      ticket_type.update!(sold_quantity: ticket_type.total_quantity)
+      expect(call_service(idempotency_key: 'racing-key')).to eq(existing)
+    end
+
     context 'with valid paid ticket reservation' do
       it 'creates a pending order with 15-minute reservation' do
         expect { call_service }

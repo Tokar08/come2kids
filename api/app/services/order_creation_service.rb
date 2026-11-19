@@ -63,6 +63,7 @@
 class OrderCreationService
   class EventNotPublishedError < StandardError; end
   class TicketsSoldOutError < StandardError; end
+  class IdempotencyConflictError < StandardError; end
   class InvalidQuantityError < StandardError; end
 
   RESERVATION_TTL = 15.minutes
@@ -71,20 +72,31 @@ class OrderCreationService
     @user = user
     @event = event
     @ticket_type_id = ticket_type_id
-    @quantity = quantity.to_i
+    @quantity = quantity
     @idempotency_key = idempotency_key
   end
 
   def call
-    raise EventNotPublishedError, 'Event is not published' unless @event.published?
-    raise InvalidQuantityError, 'Quantity must be greater than zero' if @quantity <= 0
-
-    if @idempotency_key.present?
-      existing_order = Order.find_by(idempotency_key: @idempotency_key)
-      return existing_order if existing_order
+    unless (@quantity.is_a?(Integer) && @quantity.positive?) ||
+           (@quantity.is_a?(String) && @quantity.match?(/\A[0-9]+\z/) && @quantity.to_i.positive?)
+      raise InvalidQuantityError, 'Quantity must be greater than zero'
     end
+    @quantity = @quantity.to_i
+
+    existing_order = find_existing_order
+    return existing_order if existing_order
+
+    raise EventNotPublishedError, 'Event is not published' unless @event.published?
 
     Order.transaction do
+      if @idempotency_key.present?
+        # Serialize all requests for a globally unique key, including different ticket types.
+        connection = Order.connection
+        connection.execute("SELECT pg_advisory_xact_lock(hashtextextended(#{connection.quote(@idempotency_key)}, 0))")
+        existing_order = find_existing_order
+        next existing_order if existing_order
+      end
+
       ticket_type = @event.ticket_types.lock.find(@ticket_type_id)
 
       if ticket_type.sold_quantity + @quantity > ticket_type.total_quantity
@@ -115,5 +127,17 @@ class OrderCreationService
 
       order
     end
+  end
+
+  private
+
+  def find_existing_order
+    return if @idempotency_key.blank?
+
+    order = Order.find_by(idempotency_key: @idempotency_key)
+    if order && order.user_id != @user.id
+      raise IdempotencyConflictError, 'Idempotency key is already in use'
+    end
+    order
   end
 end

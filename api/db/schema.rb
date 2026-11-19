@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_19_103000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_19_110000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -132,7 +132,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_103000) do
     t.integer "total_amount", null: false
     t.string "currency", default: "980", null: false
     t.string "status", default: "pending", null: false
-    t.string "idempotency_key"
+    t.string "idempotency_key", null: false
     t.datetime "reserved_until"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
