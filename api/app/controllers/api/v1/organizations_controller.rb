@@ -46,9 +46,9 @@ module Api
         elsif error.is_a?(ActiveModel::Errors) || error.respond_to?(:messages)
           error_details = if error.respond_to?(:map)
                             error.map { |e| { field: e.attribute, error: e.type } }
-                          else
+          else
                             error.messages.map { |field, messages| { field: field, error: messages.join(', ') } }
-                          end
+          end
 
           render json: {
             code: 'VALIDATION_ERROR',
@@ -58,10 +58,10 @@ module Api
 
         else
           details = case error
-                    when Hash then [{ field: 'base', error: error.to_s }]
-                    when String then [{ field: 'base', error: error }]
-                    else [{ field: 'base', error: 'Невідома помилка валідації' }]
-                    end
+          when Hash then [ { field: 'base', error: error.to_s } ]
+          when String then [ { field: 'base', error: error } ]
+          else [ { field: 'base', error: 'Невідома помилка валідації' } ]
+          end
 
           render json: {
             code: 'VALIDATION_ERROR',
