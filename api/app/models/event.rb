@@ -10,6 +10,7 @@ class Event < ApplicationRecord
   belongs_to :reviewed_by, class_name: 'User', optional: true
 
   has_many :event_translations, dependent: :destroy
+  has_many :ticket_types, dependent: :destroy
 
   validates :status, inclusion: { in: STATUSES }
   validates :location_type, inclusion: { in: LOCATION_TYPES }, allow_nil: true
