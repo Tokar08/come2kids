@@ -39,6 +39,14 @@ Rails.application.routes.draw do
         post "register", to: "registrations#create"
         post "confirm-email", to: "email_confirmations#confirm"
         post "resend-confirmation", to: "email_confirmations#resend"
+        post "forgot-password", to: "forgot_passwords#create"
+        post "reset-password", to: "reset_passwords#create"
+      end
+
+      resources :events, only: [ :index ]
+
+      resources :organizations, only: [] do
+        resources :events, only: [ :create ], module: :organizations
       end
 
       resources :events, only: [] do

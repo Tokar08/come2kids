@@ -7,7 +7,7 @@ gem 'rails', '~> 8.1.4'
 # Use postgresql as the database for Active Record
 gem 'pg', '~> 1.1'
 # Use the Puma web server [https://github.com/puma/puma]
-gem 'puma', '>= 5.0'
+gem 'puma', '>= 8.0'
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 # gem "jbuilder"
 
@@ -29,12 +29,12 @@ gem 'solid_cache'
 gem 'solid_cable'
 
 # Background jobs (Active Job) via Sidekiq + Redis
-gem 'sidekiq', '~> 7.3'
+gem 'sidekiq', '~> 8.1'
 gem 'sidekiq-cron', '~> 2.0'
-gem 'redis', '~> 5.0'
+gem 'redis', '~> 6.0'
 
 # Activity / failure logs in MongoDB
-gem 'mongoid', '~> 9.0'
+gem 'mongoid', '~> 9.1'
 
 # Result monads (introduced for US-1.4 jobs/services; project-wide adoption later)
 gem 'dry-monads', '~> 1.6'
