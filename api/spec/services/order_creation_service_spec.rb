@@ -3,23 +3,20 @@
 require 'rails_helper'
 
 RSpec.describe OrderCreationService, type: :service do
-  subject(:call_service) { described_class.new(**params).call }
-
   let(:user) { create(:user) }
   let(:event) { create(:event, :published) }
   let(:ticket_type) do
     create(:ticket_type, event: event, price: 250, currency: 'UAH', total_quantity: 10, sold_quantity: 2)
   end
-  let(:quantity) { 2 }
-  let(:idempotency_key) { 'order-idem-001' }
-  let(:params) do
-    {
+
+  def call_service(quantity: 2, idempotency_key: 'order-idem-001', target_event: event, target_ticket: ticket_type)
+    described_class.new(
       user: user,
-      event: event,
-      ticket_type_id: ticket_type.id,
+      event: target_event,
+      ticket_type_id: target_ticket.id,
       quantity: quantity,
       idempotency_key: idempotency_key
-    }
+    ).call
   end
 
   describe '#call' do
@@ -39,12 +36,9 @@ RSpec.describe OrderCreationService, type: :service do
     end
 
     context 'with free tickets (price = 0)' do
-      let(:ticket_type) do
-        create(:ticket_type, event: event, price: 0, total_quantity: 10, sold_quantity: 0)
-      end
-
       it 'creates a paid order without reserved_until' do
-        order = call_service
+        free_ticket = create(:ticket_type, event: event, price: 0, total_quantity: 10, sold_quantity: 0)
+        order = call_service(target_ticket: free_ticket)
 
         expect(order).to be_paid
         expect(order.total_amount).to eq(0)
@@ -53,37 +47,32 @@ RSpec.describe OrderCreationService, type: :service do
     end
 
     context 'when idempotency_key was already used' do
-      let!(:existing_order) do
-        create(:order, user: user, event: event, status: 'pending', idempotency_key: idempotency_key)
-      end
-
       it 'returns existing order without creating a duplicate' do
-        expect { call_service }.not_to change(Order, :count)
-        expect(call_service).to eq(existing_order)
+        existing = create(:order, user: user, event: event, status: 'pending', idempotency_key: 'dup-key')
+
+        expect { call_service(idempotency_key: 'dup-key') }.not_to change(Order, :count)
+        expect(call_service(idempotency_key: 'dup-key')).to eq(existing)
       end
     end
 
     context 'when event is not published' do
-      let(:event) { create(:event, :draft) }
-
       it 'raises EventNotPublishedError' do
-        expect { call_service }.to raise_error(described_class::EventNotPublishedError)
+        draft_event = create(:event, :draft)
+
+        expect { call_service(target_event: draft_event) }
+          .to raise_error(described_class::EventNotPublishedError)
       end
     end
 
     context 'when quantity is zero or negative' do
-      let(:quantity) { 0 }
-
       it 'raises InvalidQuantityError' do
-        expect { call_service }.to raise_error(described_class::InvalidQuantityError)
+        expect { call_service(quantity: 0) }.to raise_error(described_class::InvalidQuantityError)
       end
     end
 
     context 'when requested quantity exceeds available tickets' do
-      let(:quantity) { 9 }
-
       it 'raises TicketsSoldOutError without mutating sold_quantity' do
-        expect { call_service }.to raise_error(described_class::TicketsSoldOutError)
+        expect { call_service(quantity: 9) }.to raise_error(described_class::TicketsSoldOutError)
         expect(ticket_type.reload.sold_quantity).to eq(2)
       end
     end
