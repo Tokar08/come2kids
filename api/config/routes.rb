@@ -4,9 +4,6 @@ require "sidekiq/web"
 require "sidekiq/cron/web"
 
 Rails.application.routes.draw do
-  get "/users/me", to: "users#show"
-  put "/users/me", to: "users#update"
-
   if Rails.env.development? || Rails.env.test?
     mount Rswag::Ui::Engine => "/api-docs"
     mount Rswag::Api::Engine => "/api-docs"
@@ -44,6 +41,50 @@ Rails.application.routes.draw do
       end
 
       resources :events, only: [ :index ]
+
+      # Own profile (US-2.5)
+      get "users/me", to: "users#show"
+      put "users/me", to: "users#update"
+
+      # Appeals of blocked users and owners of blocked organizations (US-6.5)
+      resources :appeals, only: :create do
+        get :current, on: :collection
+      end
+
+      # Moderator-only endpoints (EPIC-6)
+      namespace :moderation do
+        resources :organizations, only: :index do
+          member do
+            post :approve
+            post :reject
+            post :block
+            post :unblock
+          end
+        end
+
+        resources :events, only: :index do
+          member do
+            post :approve
+            post :reject
+          end
+        end
+
+        resources :users, only: [] do
+          member do
+            post :block
+            post :unblock
+          end
+        end
+
+        resources :appeals, only: %i[index show] do
+          member do
+            post :accept
+            post :reject
+          end
+        end
+
+        resources :logs, only: :index
+      end
 
       if Rails.env.development?
         namespace :dev do

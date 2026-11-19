@@ -20,6 +20,16 @@ RSpec.describe "CORS", type: :request do
     expect(response.headers["Access-Control-Allow-Credentials"]).to be_nil
   end
 
+  context "without FRONTEND_ORIGINS (development defaults)", if: ENV["FRONTEND_ORIGINS"].blank? do
+    %w[http://localhost:3000 http://127.0.0.1:3000 http://0.0.0.0:3000 http://127.0.0.1:5173].each do |origin|
+      it "allows #{origin}" do
+        get "/up", headers: { "Origin" => origin }
+
+        expect(response.headers["Access-Control-Allow-Origin"]).to eq(origin)
+      end
+    end
+  end
+
   it "does not grant access to an unconfigured origin" do
     get "/up", headers: { "Origin" => "https://untrusted.example" }
 

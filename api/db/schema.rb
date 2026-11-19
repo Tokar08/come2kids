@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_16_100100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -42,6 +42,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "appeals", force: :cascade do |t|
+    t.string "target_type", limit: 20, null: false
+    t.bigint "target_id", null: false
+    t.bigint "submitted_by_id", null: false
+    t.text "message", null: false
+    t.string "status", limit: 20, default: "open", null: false
+    t.text "decision_reason"
+    t.bigint "reviewed_by_id"
+    t.datetime "reviewed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["reviewed_by_id"], name: "index_appeals_on_reviewed_by_id"
+    t.index ["status"], name: "index_appeals_on_status"
+    t.index ["submitted_by_id"], name: "index_appeals_on_submitted_by_id"
+    t.index ["target_type", "target_id", "created_at"], name: "index_appeals_on_target"
+    t.index ["target_type", "target_id"], name: "idx_appeals_one_open_per_target", unique: true, where: "((status)::text = 'open'::text)"
+    t.check_constraint "char_length(message) >= 1 AND char_length(message) <= 2000", name: "chk_appeals_message_length"
+    t.check_constraint "status::text = ANY (ARRAY['open'::character varying::text, 'accepted'::character varying::text, 'rejected'::character varying::text])", name: "chk_appeals_status"
+    t.check_constraint "target_type::text = ANY (ARRAY['User'::character varying::text, 'Organization'::character varying::text])", name: "chk_appeals_target_type"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -113,6 +134,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
     t.check_constraint "end_at > start_at", name: "chk_events_end_after_start"
     t.check_constraint "location_type IS NULL OR (location_type::text = ANY (ARRAY['offline'::character varying::text, 'online'::character varying::text]))", name: "chk_events_location_type"
     t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'under_review'::character varying::text, 'published'::character varying::text, 'rejected'::character varying::text, 'cancelled'::character varying::text])", name: "chk_events_status"
+  end
+
+  create_table "moderation_logs", force: :cascade do |t|
+    t.string "entity_type", limit: 30, null: false
+    t.bigint "entity_id", null: false
+    t.bigint "moderator_id"
+    t.string "decision", limit: 30, null: false
+    t.text "reason"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["created_at"], name: "index_moderation_logs_on_created_at"
+    t.index ["entity_type", "entity_id", "created_at"], name: "index_moderation_logs_on_entity"
+    t.index ["moderator_id"], name: "index_moderation_logs_on_moderator_id"
+    t.check_constraint "decision::text = ANY (ARRAY['approved'::character varying::text, 'rejected'::character varying::text, 'blocked'::character varying::text, 'unblocked'::character varying::text, 'appeal_submitted'::character varying::text, 'appeal_accepted'::character varying::text, 'appeal_rejected'::character varying::text])", name: "chk_moderation_logs_decision"
+    t.check_constraint "entity_type::text = ANY (ARRAY['User'::character varying::text, 'Organization'::character varying::text, 'Event'::character varying::text, 'Appeal'::character varying::text])", name: "chk_moderation_logs_entity_type"
   end
 
   create_table "organization_translations", force: :cascade do |t|
@@ -188,6 +223,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "appeals", "users", column: "reviewed_by_id", on_delete: :nullify
+  add_foreign_key "appeals", "users", column: "submitted_by_id", on_delete: :cascade
   add_foreign_key "company_members", "organizations", on_delete: :cascade
   add_foreign_key "company_members", "roles", on_delete: :restrict
   add_foreign_key "company_members", "users", column: "added_by_id", on_delete: :nullify
@@ -197,6 +234,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
   add_foreign_key "events", "organizations", on_delete: :restrict
   add_foreign_key "events", "users", column: "created_by_id", on_delete: :restrict
   add_foreign_key "events", "users", column: "reviewed_by_id", on_delete: :nullify
+  add_foreign_key "moderation_logs", "users", column: "moderator_id", on_delete: :nullify
   add_foreign_key "organization_translations", "organizations", on_delete: :cascade
   add_foreign_key "organizations", "users", column: "approved_by_id", on_delete: :nullify
   add_foreign_key "organizations", "users", column: "blocked_by_id", on_delete: :nullify
