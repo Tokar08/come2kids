@@ -34,9 +34,6 @@ module Api
       end
 
       def handle_failure(error)
-        Rails.logger.info("🔥 DEBUG ERROR CLASS: #{error.class}")
-        Rails.logger.info("🔥 DEBUG ERROR VALUE: #{error.inspect}")
-
         if error == :already_owner
           render json: {
             code: 'ALREADY_OWNER',
