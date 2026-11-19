@@ -45,6 +45,14 @@ Rails.application.routes.draw do
 
       resources :events, only: [ :index ]
 
+      resources :organizations, only: [] do
+        resources :events, only: [], module: :organizations do
+          resources :images, only: %i[create destroy] do
+            collection { patch :order }
+          end
+        end
+      end
+
       if Rails.env.development?
         namespace :dev do
           post "confirmation-token", to: "tokens#confirmation_token"

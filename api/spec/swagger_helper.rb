@@ -18,13 +18,52 @@ RSpec.configure do |config|
           error: {
             type: :object,
             properties: {
-              code: { type: :string, example: "UNAUTHORIZED" },
+              code: { type: :string, example: 'UNAUTHORIZED' },
+              message: { type: :string },
               details: {
                 type: :array,
-                items: { type: :object, properties: { message: { type: :string } } }
+                items: {
+                  type: :object,
+                  properties: {
+                    field: { type: :string },
+                    error: { type: :string },
+                    message: { type: :string }
+                  }
+                }
               }
             },
             required: %w[code]
+          },
+          eventMedia: {
+            type: :object,
+            properties: {
+              id: { type: :integer },
+              kind: { type: :string, enum: %w[banner gallery] },
+              position: { type: :integer },
+              url: { type: :string },
+              content_type: { type: :string },
+              byte_size: { type: :integer }
+            },
+            required: %w[id kind position url content_type byte_size]
+          },
+          eventMediaResponse: {
+            type: :object,
+            properties: { data: { '$ref' => '#/components/schemas/eventMedia' } },
+            required: %w[data]
+          },
+          eventMediaList: {
+            type: :object,
+            properties: {
+              data: { type: :array, items: { '$ref' => '#/components/schemas/eventMedia' } }
+            },
+            required: %w[data]
+          },
+          eventImageOrder: {
+            type: :object,
+            properties: {
+              image_ids: { type: :array, items: { type: :integer } }
+            },
+            required: %w[image_ids]
           }
         }
       }
