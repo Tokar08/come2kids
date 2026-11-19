@@ -20,5 +20,12 @@ module Api
 
     association :category, blueprint: Api::CategoryBlueprint
     association :organization, blueprint: Api::OrganizationBlueprint
+
+    view :managed do
+      field :category_id
+
+      association :event_translations, blueprint: Api::EventTranslationBlueprint
+      association :ticket_types, blueprint: Api::TicketTypeBlueprint
+    end
   end
 end

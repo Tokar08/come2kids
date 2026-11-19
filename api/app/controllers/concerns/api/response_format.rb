@@ -4,9 +4,12 @@ module Api
   module ResponseFormat
     private
 
-    def render_resource(resource, blueprint:, status: :ok)
+    def render_resource(resource, blueprint:, status: :ok, view: nil)
+      options = {}
+      options[:view] = view if view
+
       render json: {
-        data: blueprint.render_as_hash(resource)
+        data: blueprint.render_as_hash(resource, **options)
       }, status: status
     end
 
