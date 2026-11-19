@@ -13,6 +13,15 @@ RSpec.describe OrderItem, type: :model do
   end
 
   describe 'validations' do
+    it 'is valid with the default factory attributes' do
+      expect(order_item).to be_valid
+    end
+
+    it 'rejects fractional quantities' do
+      order_item.quantity = 1.5
+      expect(order_item).not_to be_valid
+    end
+
     it 'requires positive integer quantity' do
       order_item.quantity = 0
       expect(order_item).not_to be_valid

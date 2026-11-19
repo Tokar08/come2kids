@@ -4,9 +4,13 @@ module Api
   module V1
     class OrdersController < ApplicationController
       before_action :authenticate_user!
-      skip_after_action :verify_authorized, raise: false
 
       def create
+        authorize Order
+        if request.headers['Idempotency-Key'].blank?
+          return render_error(code: 'PARAMETER_MISSING', message: 'Idempotency-Key is required', status: :bad_request)
+        end
+
         event = Event.find(params[:event_id])
 
         service = OrderCreationService.new(
@@ -18,7 +22,9 @@ module Api
         )
 
         order = service.call
-        render json: order, status: :created
+        render_resource order, blueprint: Api::OrderBlueprint, status: :created
+      rescue OrderCreationService::IdempotencyConflictError => e
+        render_error(code: 'IDEMPOTENCY_CONFLICT', message: e.message, status: :conflict)
       rescue OrderCreationService::TicketsSoldOutError => e
         render json: { code: 'EVENT_SOLD_OUT', message: e.message }, status: :unprocessable_entity
       rescue OrderCreationService::EventNotPublishedError, OrderCreationService::InvalidQuantityError => e

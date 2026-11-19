@@ -2,8 +2,8 @@
 
 FactoryBot.define do
   factory :order_item do
-    order { nil }
-    ticket_type { nil }
+    association :order
+    association :ticket_type
     quantity { 1 }
     unit_price { 1 }
   end
