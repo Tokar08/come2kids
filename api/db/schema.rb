@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_19_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -67,6 +67,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
     t.index ["role_id"], name: "index_company_members_on_role_id"
     t.index ["user_id"], name: "idx_company_members_one_org_per_user", unique: true, where: "(role_id = 1)"
     t.index ["user_id"], name: "index_company_members_on_user_id"
+  end
+
+  create_table "event_media", force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.string "kind", limit: 10, null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id", "kind", "position"], name: "index_event_media_on_event_kind_position"
+    t.index ["event_id"], name: "idx_event_media_one_banner", unique: true, where: "((kind)::text = 'banner'::text)"
+    t.index ["event_id"], name: "index_event_media_on_event_id"
+    t.check_constraint "\"position\" >= 0", name: "chk_event_media_position"
+    t.check_constraint "kind::text = ANY (ARRAY['banner'::character varying, 'gallery'::character varying]::text[])", name: "chk_event_media_kind"
   end
 
   create_table "event_translations", force: :cascade do |t|
@@ -192,6 +205,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_15_192821) do
   add_foreign_key "company_members", "roles", on_delete: :restrict
   add_foreign_key "company_members", "users", column: "added_by_id", on_delete: :nullify
   add_foreign_key "company_members", "users", on_delete: :cascade
+  add_foreign_key "event_media", "events", on_delete: :cascade
   add_foreign_key "event_translations", "events", on_delete: :cascade
   add_foreign_key "events", "categories", on_delete: :restrict
   add_foreign_key "events", "organizations", on_delete: :restrict
