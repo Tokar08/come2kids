@@ -35,7 +35,10 @@ module Moderation
     end
 
     # FR-ORG-2, FR-MOD-5: an organization that is not approved (pending, rejected, blocked) cannot publish.
+    # The organization row stays locked until the approval commits, so a concurrent block cannot slip in
+    # between this check and the update (lock order: event, then organization).
     def ensure_organization_can_publish!
+      event.organization.lock!
       return if event.organization.accepts_event_changes?
 
       fail!(Api::ErrorCodes::INVALID_STATUS_TRANSITION, 'organization_not_approved',

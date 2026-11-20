@@ -19,19 +19,26 @@ class ModerationMailer < ApplicationMailer
     deliver_notification(user, "user_#{action}", reason)
   end
 
-  # action: "blocked" | "unblocked"
+  # action: "blocked" | "unblocked". An organization that was blocked before its approval returns to
+  # pending_approval, so its unblock email does not promise visible events (the *_pending texts).
   def organization_block_changed(organization, action, reason = nil)
-    deliver_notification(organization.owner, "organization_#{action}", reason) { { name: organization.name } }
+    key = "organization_#{action}#{pending_suffix(organization)}"
+    deliver_notification(organization.owner, key, reason) { { name: organization.name } }
   end
 
   def appeal_decision(appeal)
     key = "appeal_#{appeal.status}_#{appeal.target_type.underscore}"
+    key += pending_suffix(appeal.target) if appeal.accepted?
     deliver_notification(appeal.appellant, key, appeal.decision_reason) do
       appeal.target.is_a?(Organization) ? { name: appeal.target.name } : {}
     end
   end
 
   private
+
+  def pending_suffix(target)
+    target.is_a?(Organization) && target.pending_approval? ? '_pending' : ''
+  end
 
   # The block returns interpolation values; it runs inside the recipient's locale, so translated
   # names and titles come out in the recipient's language.

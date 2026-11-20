@@ -39,6 +39,7 @@ RSpec.describe 'Auth: forgot password', type: :request do
 
           it 'sends nothing and answers the same' do
             expect { send_documented_request }.not_to have_enqueued_mail(UserMailer, :password_reset)
+            expect(response).to have_http_status(:ok)
             expect(json['message']).to eq(I18n.t('auth.forgot_password_sent'))
           end
 
@@ -57,6 +58,7 @@ RSpec.describe 'Auth: forgot password', type: :request do
 
           it 'sends nothing and answers the same' do
             expect { send_documented_request }.not_to have_enqueued_mail(UserMailer, :password_reset)
+            expect(response).to have_http_status(:ok)
             expect(json['message']).to eq(I18n.t('auth.forgot_password_sent'))
           end
         end

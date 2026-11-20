@@ -18,6 +18,7 @@ module Moderation
     end
 
     def call
+      ensure_reason_is_text!
       record = ApplicationRecord.transaction { perform }
       run_side_effects
       Success(record)
@@ -49,18 +50,30 @@ module Moderation
       side_effects << block
     end
 
-    # The decision is already committed, so a failed notification (e.g. the queue is down) is logged
-    # and does not turn the outcome into a Failure.
+    # The decision is already committed, so a failed notification (e.g. the queue is down) does not turn
+    # the outcome into a Failure. It is reported to the error tracker (Rails.error) with the action name,
+    # so operators can resend the lost email or activity log entry.
     def run_side_effects
       side_effects.each do |side_effect|
         side_effect.call
       rescue StandardError => e
         Rails.logger.error("[#{self.class.name}] side effect failed: #{e.class}: #{e.message}")
+        Rails.error.report(e, handled: true, severity: :error, context: { action: self.class.name })
       end
     end
 
+    # Keeps a string reason (stripped, blank → nil). Any other JSON type, e.g. `false` or a number, is
+    # remembered and rejected by #ensure_reason_is_text! instead of being stored as "false".
     def normalize_reason(reason)
-      reason.to_s.strip.presence
+      return if reason.nil?
+      return reason.strip.presence if reason.is_a?(String)
+
+      @reason_not_text = true
+      nil
+    end
+
+    def ensure_reason_is_text!
+      validation_failed!(:reason, I18n.t('moderation.errors.reason_not_text')) if @reason_not_text
     end
 
     def require_reason!(reason)

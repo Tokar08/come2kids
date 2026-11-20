@@ -49,7 +49,27 @@ RSpec.describe ModerationMailer do
     expect(mail.text_part.body.to_s).to include('Spam')
   end
 
-  it 'emails the appellant about the appeal decision' do
+  context 'when the organization was never approved' do
+    before { organization.update!(status: 'pending_approval', approved_at: nil) }
+
+    it 'does not promise visible events after an unblock' do
+      mail = described_class.organization_block_changed(organization, 'unblocked')
+
+      expect(mail.text_part.body.to_s).to include('waiting for moderation again')
+      expect(mail.text_part.body.to_s).not_to include('ticket sales')
+    end
+
+    it 'does not promise visible events after an accepted appeal' do
+      appeal = create(:appeal, target: organization, submitted_by: owner, status: 'accepted')
+
+      mail = described_class.appeal_decision(appeal)
+
+      expect(mail.subject).to eq('Your appeal for "Club" has been accepted')
+      expect(mail.text_part.body.to_s).to include('waiting for moderation again')
+    end
+  end
+
+    it 'emails the appellant about the appeal decision' do
     appeal = create(:appeal, :rejected, target: organization, submitted_by: owner)
 
     mail = described_class.appeal_decision(appeal)

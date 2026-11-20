@@ -2,6 +2,7 @@ en:
   moderation:
     errors:
       validation_failed: "The request is invalid."
+      reason_not_text: "must be text"
       reason_required: "A reason is required."
       reason_too_long: "must be at most %{count} characters long"
       message_required: "An appeal message is required."
@@ -52,6 +53,10 @@ en:
       subject: "Your organization \"%{name}\" has been unblocked"
       heading: "Your organization \"%{name}\" has been unblocked."
       body: "Its published events are visible again and ticket sales have resumed."
+    organization_unblocked_pending:
+      subject: "Your organization \"%{name}\" has been unblocked"
+      heading: "Your organization \"%{name}\" has been unblocked."
+      body: "It is waiting for moderation again: you will get an email once a moderator approves it."
     appeal_accepted_user:
       subject: "Your appeal has been accepted"
       heading: "Your appeal has been accepted and your account has been unblocked."
@@ -64,6 +69,10 @@ en:
       subject: "Your appeal for \"%{name}\" has been accepted"
       heading: "Your appeal has been accepted and the organization \"%{name}\" has been unblocked."
       body: "Its published events are visible again and ticket sales have resumed."
+    appeal_accepted_organization_pending:
+      subject: "Your appeal for \"%{name}\" has been accepted"
+      heading: "Your appeal has been accepted and the organization \"%{name}\" has been unblocked."
+      body: "It is waiting for moderation again: you will get an email once a moderator approves it."
     appeal_rejected_organization:
       subject: "Your appeal for \"%{name}\" has been rejected"
       heading: "Your appeal has been rejected; the organization \"%{name}\" stays blocked."

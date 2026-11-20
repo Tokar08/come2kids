@@ -6,6 +6,8 @@
 # into Mongo would not help).
 class ActivityLogJob < ApplicationJob
   queue_as :default
+  # The payload holds IP, user agent and moderation reasons; keep them out of routine job logs.
+  self.log_arguments = false
 
   def perform(attributes)
     result = ActivityLogs::Writer.call(**attributes.symbolize_keys)

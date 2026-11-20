@@ -27,7 +27,7 @@ RSpec.configure do |config|
       info: {
         title: 'Come2Kids API',
         version: 'v1',
-        description: 'Errors always use { code, message, details }. Collections return { data, pagination }.'
+        description: 'Errors use { code, message, details }; one exception: PUT /api/v1/users/me answers an '                      'invalid profile with 422 { errors: [...] }. Collections return { data, pagination }.'
       },
       # The relative server sends "Try it out" requests to the host Swagger UI was opened from, so it works on
       # localhost, 127.0.0.1 and 0.0.0.0 without CORS. The templated server targets a host explicitly.
@@ -160,6 +160,71 @@ RSpec.configure do |config|
               created_at: timestamp
             },
             required: %w[id entity_type entity_id decision]
+          },
+          draftEventTranslation: {
+            type: :object,
+            properties: {
+              locale: { type: :string, enum: %w[uk en] },
+              title: { type: :string },
+              description: { type: :string, nullable: true }
+            },
+            required: %w[locale title]
+          },
+          draftTicketType: {
+            type: :object,
+            properties: {
+              name: { type: :string },
+              price: { type: :integer, description: 'Price in minor units. 0 means free.' },
+              total_quantity: { type: :integer },
+              sale_start_at: { type: :string, format: 'date-time', nullable: true },
+              sale_end_at: { type: :string, format: 'date-time', nullable: true }
+            },
+            required: %w[name price total_quantity]
+          },
+          draftEvent: {
+            type: :object,
+            properties: {
+              category_id: { type: :integer, nullable: true },
+              start_at: { type: :string, format: 'date-time', nullable: true },
+              end_at: { type: :string, format: 'date-time', nullable: true },
+              time_zone: { type: :string },
+              location_type: { type: :string, enum: %w[offline online], nullable: true },
+              address: { type: :string, nullable: true },
+              city: { type: :string, nullable: true },
+              online_url: { type: :string, nullable: true },
+              translations: { type: :array, items: { '$ref' => '#/components/schemas/draftEventTranslation' } },
+              ticket_types: { type: :array, items: { '$ref' => '#/components/schemas/draftTicketType' } }
+            }
+          },
+          draftEventRequest: {
+            type: :object,
+            properties: { event: { '$ref' => '#/components/schemas/draftEvent' } },
+            required: %w[event]
+          },
+          managedEvent: {
+            type: :object,
+            properties: {
+              id: { type: :integer },
+              status: { type: :string, example: 'draft' },
+              time_zone: { type: :string },
+              location_type: { type: :string, nullable: true },
+              address: { type: :string, nullable: true },
+              city: { type: :string, nullable: true },
+              online_url: { type: :string, nullable: true },
+              banner_url: { type: :string, nullable: true },
+              title: { type: :string, nullable: true },
+              start_at: { type: :string, format: 'date-time', nullable: true },
+              end_at: { type: :string, format: 'date-time', nullable: true },
+              category_id: { type: :integer, nullable: true },
+              event_translations: { type: :array, items: { type: :object } },
+              ticket_types: { type: :array, items: { type: :object } }
+            },
+            required: %w[id status]
+          },
+          managedEventResponse: {
+            type: :object,
+            properties: { data: { '$ref' => '#/components/schemas/managedEvent' } },
+            required: %w[data]
           }
         }
       }

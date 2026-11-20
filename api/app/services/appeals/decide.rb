@@ -23,6 +23,8 @@ module Appeals
       raise ArgumentError, "Unknown decision: #{decision}" unless DECISIONS.include?(decision)
 
       require_reason!(reason) if decision == 'rejected'
+      # Same lock order as a direct unblock (target, then appeal), so the two cannot deadlock.
+      appeal.target.lock!
       appeal.lock!
       invalid_transition!(appeal) unless appeal.open?
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_16_100100) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_19_103000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -196,6 +196,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_100100) do
     t.index ["key"], name: "index_roles_on_key", unique: true
   end
 
+  create_table "ticket_types", force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.string "name", limit: 200, null: false
+    t.integer "price", default: 0, null: false
+    t.string "currency", limit: 3, default: "UAH", null: false
+    t.integer "total_quantity", null: false
+    t.integer "sold_quantity", default: 0, null: false
+    t.datetime "sale_start_at"
+    t.datetime "sale_end_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_ticket_types_on_event_id"
+    t.check_constraint "price >= 0", name: "chk_ticket_types_price"
+    t.check_constraint "sold_quantity >= 0 AND sold_quantity <= total_quantity", name: "chk_ticket_types_sold_within_total"
+    t.check_constraint "total_quantity > 0", name: "chk_ticket_types_total_quantity"
+  end
+
   create_table "users", force: :cascade do |t|
     t.citext "email", null: false
     t.string "password_digest", null: false
@@ -238,5 +255,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_100100) do
   add_foreign_key "organization_translations", "organizations", on_delete: :cascade
   add_foreign_key "organizations", "users", column: "approved_by_id", on_delete: :nullify
   add_foreign_key "organizations", "users", column: "blocked_by_id", on_delete: :nullify
+  add_foreign_key "ticket_types", "events", on_delete: :cascade
   add_foreign_key "users", "users", column: "blocked_by_id", on_delete: :nullify
 end

@@ -144,7 +144,10 @@ RSpec.describe 'Moderation: users', type: :request do
           context 'with an open appeal' do
             let!(:appeal) { create(:appeal, target: user) }
 
-            run_test! { expect(appeal.reload).to have_attributes(status: 'accepted', reviewed_by_id: moderator.id) }
+            run_test!('closes it as accepted and logs the decision') do
+              expect(appeal.reload).to have_attributes(status: 'accepted', reviewed_by_id: moderator.id)
+              expect(ModerationLog.for_entity(appeal).pluck(:decision)).to eq(%w[appeal_accepted])
+            end
           end
         end
 

@@ -18,7 +18,8 @@ The foundational API skeleton has been successfully generated. Core directories 
 
 ## Error Responses
 
-API errors use the same JSON shape for every endpoint:
+API errors use the same JSON shape for every endpoint (one exception: `PUT /api/v1/users/me` answers an invalid profile
+with `422 { "errors": ["First name ..."] }`):
 
 ```json
 {
@@ -183,7 +184,8 @@ bundle exec rake rswag:specs:swaggerize
 ```
 
 The generated v1 document is served at `/api-docs/v1/swagger.yaml`. `api/swagger/` is git-ignored, so run the command
-after pulling. Generation uses `--dry-run`, so it needs no database.
+after pulling. Generation uses `--dry-run` (no requests are sent), but it still loads `rails_helper`, which checks the
+test database schema, so PostgreSQL must be running and the test database prepared (`bin/rails db:test:prepare`).
 
 The document lists two servers: `/` (the host Swagger UI was opened from, so "Try it out" works on `localhost`,
 `127.0.0.1` and `0.0.0.0` without CORS) and `http://{host}:{port}` to target a host explicitly. Protected endpoints use

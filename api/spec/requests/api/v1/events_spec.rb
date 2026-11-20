@@ -56,8 +56,9 @@ RSpec.describe 'Events: public catalog', type: :request do
         end
 
         context 'when statuses are mixed' do
+          let!(:visible) { publish_event }
+
           before do
-            publish_event
             create(:event, :draft, organization: organization)
             create(:event, :cancelled, organization: organization)
             blocked = create(:organization, status: 'blocked', blocked_at: Time.current, block_reason: 'spam')
@@ -65,78 +66,74 @@ RSpec.describe 'Events: public catalog', type: :request do
           end
 
           run_test!('returns only published events of approved organizations') do
-            expect(json['data'].size).to eq(1)
+            expect(json['data'].pluck('id')).to eq([ visible.id ])
           end
         end
 
         context 'with a category filter' do
           let(:category_id) { category.id }
+          let!(:matching) { publish_event }
 
-          before do
-            publish_event
-            publish_event(category: create(:category))
-          end
+          before { publish_event(category: create(:category)) }
 
-          run_test! { expect(json['data'].size).to eq(1) }
+          run_test! { expect(json['data'].pluck('id')).to eq([ matching.id ]) }
         end
 
         context 'with a city filter' do
           let(:city) { 'Lviv' }
+          let!(:matching) { publish_event(city: 'Lviv') }
 
-          before do
-            publish_event(city: 'Kyiv')
-            publish_event(city: 'Lviv')
-          end
+          before { publish_event(city: 'Kyiv') }
 
-          run_test! { expect(json['data'].size).to eq(1) }
+          run_test! { expect(json['data'].pluck('id')).to eq([ matching.id ]) }
         end
 
         context 'with location_type=online' do
           let(:location_type) { 'online' }
-
-          before do
-            publish_event
-            online = create(:event, :online, organization: organization, category: category)
-            create(:event_translation, event: online)
+          let!(:matching) do
+            create(:event, :online, organization: organization, category: category)
+              .tap { |online| create(:event_translation, event: online) }
           end
 
-          run_test! { expect(json['data'].size).to eq(1) }
+          before { publish_event }
+
+          run_test! { expect(json['data'].pluck('id')).to eq([ matching.id ]) }
         end
 
         context 'with date_from' do
           let(:date_from) { 5.days.from_now.iso8601 }
+          let!(:matching) { publish_event(start_at: 10.days.from_now, end_at: 10.days.from_now + 2.hours) }
 
-          before do
-            publish_event(start_at: 2.days.from_now, end_at: 2.days.from_now + 2.hours)
-            publish_event(start_at: 10.days.from_now, end_at: 10.days.from_now + 2.hours)
-          end
+          before { publish_event(start_at: 2.days.from_now, end_at: 2.days.from_now + 2.hours) }
 
-          run_test! { expect(json['data'].size).to eq(1) }
+          run_test! { expect(json['data'].pluck('id')).to eq([ matching.id ]) }
         end
 
         context 'with a Ukrainian text search' do
           let(:q) { 'малювання' }
           let(:locale) { 'uk' }
 
-          before do
-            event = create(:event, organization: organization, category: category)
-            create(:event_translation, event: event, title: 'Майстер-клас з малювання')
-            publish_event
+          let!(:matching) do
+            create(:event, organization: organization, category: category)
+              .tap { |event| create(:event_translation, event: event, title: 'Майстер-клас з малювання') }
           end
 
-          run_test! { expect(json['data'].size).to eq(1) }
+          before { publish_event }
+
+          run_test! { expect(json['data'].pluck('id')).to eq([ matching.id ]) }
         end
 
         context 'with an English text search' do
           let(:q) { 'Painting' }
           let(:locale) { 'en' }
 
-          before do
-            create(:event_translation, :en, event: publish_event, title: 'Painting workshop')
-            publish_event
+          let!(:matching) do
+            publish_event.tap { |event| create(:event_translation, :en, event: event, title: 'Painting workshop') }
           end
 
-          run_test! { expect(json['data'].size).to eq(1) }
+          before { publish_event }
+
+          run_test! { expect(json['data'].pluck('id')).to eq([ matching.id ]) }
         end
 
         context 'with sort=date and direction=desc' do

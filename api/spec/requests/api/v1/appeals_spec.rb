@@ -109,6 +109,17 @@ RSpec.describe 'Appeals', type: :request do
 
             run_test! { expect(json['code']).to eq('FORBIDDEN') }
           end
+
+          context 'with the owner of another organization' do
+            let(:organization) { create(:organization, :blocked) }
+            let(:authorization) { "Bearer #{JwtService.encode(create(:company_member, :owner).user)}" }
+            let(:appeal) { { message: 'Not mine', organization_id: organization.id } }
+
+            run_test! do
+              expect(json['code']).to eq('FORBIDDEN')
+              expect(Appeal.for_target(organization)).to be_empty
+            end
+          end
         end
 
         response '409', 'not blocked, or an appeal is already open' do
@@ -185,6 +196,18 @@ RSpec.describe 'Appeals', type: :request do
           let(:authorization) { nil }
 
           run_test! { expect(json['code']).to eq('UNAUTHORIZED') }
+        end
+
+        response '403', 'the organization belongs to someone else' do
+          schema '$ref' => '#/components/schemas/error'
+
+          let(:organization_id) { create(:organization, :blocked).id }
+          let(:authorization) { "Bearer #{JwtService.encode(create(:company_member, :owner).user)}" }
+
+          run_test! do
+            expect(json['code']).to eq('FORBIDDEN')
+            expect(json).not_to have_key('data')
+          end
         end
 
         response '200', 'current state' do

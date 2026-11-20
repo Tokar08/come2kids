@@ -86,6 +86,11 @@ Rails.application.routes.draw do
         resources :logs, only: :index
       end
 
+      # Organization events (US-5.1)
+      resources :organizations, only: [] do
+        resources :events, only: [ :create ], module: :organizations
+      end
+
       if Rails.env.development?
         namespace :dev do
           post "confirmation-token", to: "tokens#confirmation_token"

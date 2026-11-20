@@ -41,11 +41,13 @@ class Appeal < ApplicationRecord
       allowed_at if allowed_at&.future?
     end
 
-    # When a moderator unblocks a target directly, its open appeal has nothing left to decide:
-    # it is closed as accepted.
+    # When a moderator unblocks a target directly, its open appeal has nothing left to decide: it is closed
+    # as accepted and the decision is written to the moderation log (FR-APP-7). The caller already holds the
+    # target lock, so the lock order (target, then appeal) matches Appeals::Decide.
     def close_open_for!(target, moderator:, reason: nil)
-      for_target(target).currently_open.find_each do |appeal|
+      for_target(target).currently_open.lock.each do |appeal|
         appeal.update!(status: 'accepted', reviewed_by: moderator, reviewed_at: Time.current, decision_reason: reason)
+        ModerationLog.record!(entity: appeal, moderator: moderator, decision: :appeal_accepted, reason: reason)
       end
     end
   end

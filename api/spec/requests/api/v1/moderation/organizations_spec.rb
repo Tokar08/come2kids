@@ -201,10 +201,21 @@ RSpec.describe 'Moderation: organizations', type: :request do
         response '422', 'reason missing' do
           schema '$ref' => '#/components/schemas/error'
 
-          run_test! do
-            expect(json['code']).to eq('VALIDATION_FAILED')
-            expect(json['details'].first['field']).to eq('reason')
-            expect(organization.reload).to be_pending_approval
+          context 'without a reason' do
+            run_test! do
+              expect(json['code']).to eq('VALIDATION_FAILED')
+              expect(json['details'].first['field']).to eq('reason')
+              expect(organization.reload).to be_pending_approval
+            end
+          end
+
+          context 'with a reason that is not text' do
+            let(:decision) { { reason: false } }
+
+            run_test!('rejects it instead of storing "false"') do
+              expect(json['details'].first['field']).to eq('reason')
+              expect(organization.reload).to be_pending_approval
+            end
           end
         end
       end
