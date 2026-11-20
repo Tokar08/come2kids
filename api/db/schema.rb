@@ -117,7 +117,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_20_143000) do
     t.index ["event_id"], name: "index_event_revisions_on_event_id"
     t.index ["reviewed_by_id"], name: "index_event_revisions_on_reviewed_by_id"
     t.index ["submitted_by_id"], name: "index_event_revisions_on_submitted_by_id"
-    t.check_constraint "status::text = ANY (ARRAY['under_review'::character varying, 'approved'::character varying, 'rejected'::character varying, 'withdrawn'::character varying]::text[])", name: "chk_event_revisions_status"
+    t.check_constraint "status::text = ANY (ARRAY['under_review'::character varying::text, 'approved'::character varying::text, 'rejected'::character varying::text, 'withdrawn'::character varying::text])", name: "chk_event_revisions_status"
   end
 
   create_table "event_status_histories", force: :cascade do |t|
