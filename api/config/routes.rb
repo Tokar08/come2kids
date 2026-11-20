@@ -29,7 +29,6 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      # Логін поза namespace :auth, бо контролер на рівень вище
       post "auth/login", to: "auth#login"
 
       namespace :auth do
@@ -40,9 +39,9 @@ Rails.application.routes.draw do
         post "reset-password", to: "reset_passwords#create"
       end
 
-      resources :events, only: [ :index, :show ]
+      resources :events, only: [:index, :show]
 
-      resources :categories, only: [ :index ]
+      resources :categories, only: [:index]
 
       # Own profile (US-2.5)
       get 'users/me', to: 'users#show'

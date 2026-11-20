@@ -89,7 +89,7 @@ RSpec.describe 'Users: own profile', type: :request do
         context 'when first_name is blank' do
           let(:profile) { { user: { first_name: '' } } }
 
-          run_test! { expect(json['errors']).to include('First name не може бути пустим') }
+          run_test! { expect(json['errors']).to include('First name не може бути порожнім') }
         end
 
         context 'when preferred_locale is not supported' do
