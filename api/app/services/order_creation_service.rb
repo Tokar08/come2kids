@@ -27,7 +27,8 @@ class OrderCreationService
     existing_order = find_existing_order
     return existing_order if existing_order
 
-    raise EventNotPublishedError, 'Event is not published' unless @event.published?
+    # FR-MOD-5: sales also stop while the organization is blocked (or the event is cancelled/deleted).
+    raise EventNotPublishedError, 'Ticket sales are closed for this event' unless @event.ticket_sales_open?
 
     Order.transaction do
       if @idempotency_key.present?

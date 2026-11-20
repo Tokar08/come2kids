@@ -66,6 +66,15 @@ RSpec.describe 'Api::V1::Orders', type: :request do
       expect(Order.count).to eq(0)
     end
 
+    it 'returns 422 while the organization is blocked (FR-MOD-5)' do
+      published_event.organization.update!(status: 'blocked', blocked_at: Time.current, block_reason: 'Fraud')
+      post "/api/v1/events/#{published_event.id}/orders",
+           params: { ticket_type_id: ticket_type.id, quantity: 2 }, headers: headers
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body['message']).to eq('Ticket sales are closed for this event')
+      expect(Order.count).to eq(0)
+    end
+
     context 'when request is valid' do
       it 'creates an order and reserves tickets' do
         post "/api/v1/events/#{published_event.id}/orders",
