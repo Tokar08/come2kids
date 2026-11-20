@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_19_220000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_20_143000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -80,6 +80,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_220000) do
     t.index ["event_id"], name: "index_event_media_on_event_id"
     t.check_constraint "\"position\" >= 0", name: "chk_event_media_position"
     t.check_constraint "kind::text = ANY (ARRAY['banner'::character varying, 'gallery'::character varying]::text[])", name: "chk_event_media_kind"
+  end
+
+  create_table "event_revisions", force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.bigint "submitted_by_id", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.string "status", limit: 20, default: "under_review", null: false
+    t.bigint "reviewed_by_id"
+    t.datetime "reviewed_at"
+    t.text "rejection_reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "idx_event_revisions_one_pending", unique: true, where: "((status)::text = 'under_review'::text)"
+    t.index ["event_id"], name: "index_event_revisions_on_event_id"
+    t.index ["reviewed_by_id"], name: "index_event_revisions_on_reviewed_by_id"
+    t.index ["submitted_by_id"], name: "index_event_revisions_on_submitted_by_id"
+    t.check_constraint "status::text = ANY (ARRAY['under_review'::character varying, 'approved'::character varying, 'rejected'::character varying, 'withdrawn'::character varying]::text[])", name: "chk_event_revisions_status"
   end
 
   create_table "event_status_histories", force: :cascade do |t|
@@ -238,6 +255,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_220000) do
   add_foreign_key "company_members", "users", column: "added_by_id", on_delete: :nullify
   add_foreign_key "company_members", "users", on_delete: :cascade
   add_foreign_key "event_media", "events", on_delete: :cascade
+  add_foreign_key "event_revisions", "events", on_delete: :cascade
+  add_foreign_key "event_revisions", "users", column: "reviewed_by_id", on_delete: :nullify
+  add_foreign_key "event_revisions", "users", column: "submitted_by_id", on_delete: :restrict
   add_foreign_key "event_status_histories", "events", on_delete: :cascade
   add_foreign_key "event_status_histories", "users", column: "changed_by_id", on_delete: :nullify
   add_foreign_key "event_translations", "events", on_delete: :cascade
