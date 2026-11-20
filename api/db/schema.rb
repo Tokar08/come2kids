@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_19_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_19_220000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -103,6 +103,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_130000) do
     t.check_constraint "kind::text = ANY (ARRAY['banner'::character varying::text, 'gallery'::character varying::text])", name: "chk_event_media_kind"
   end
 
+  create_table "event_status_histories", force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.string "from_status", limit: 30
+    t.string "to_status", limit: 30, null: false
+    t.bigint "changed_by_id"
+    t.text "reason"
+    t.string "error_code", limit: 50
+    t.datetime "changed_at", null: false
+    t.index ["changed_by_id"], name: "index_event_status_histories_on_changed_by_id"
+    t.index ["event_id", "changed_at"], name: "index_event_status_histories_on_event_id_and_changed_at"
+    t.index ["event_id"], name: "index_event_status_histories_on_event_id"
+    t.check_constraint "from_status IS NULL OR (from_status::text = ANY (ARRAY['draft'::character varying::text, 'under_review'::character varying::text, 'published'::character varying::text, 'rejected'::character varying::text, 'cancelled'::character varying::text, 'cancelled_by_organizer'::character varying::text]))", name: "chk_event_status_histories_from_status"
+    t.check_constraint "to_status::text = ANY (ARRAY['draft'::character varying::text, 'under_review'::character varying::text, 'published'::character varying::text, 'rejected'::character varying::text, 'cancelled'::character varying::text, 'cancelled_by_organizer'::character varying::text])", name: "chk_event_status_histories_to_status"
+  end
+
   create_table "event_translations", force: :cascade do |t|
     t.bigint "event_id", null: false
     t.string "locale", limit: 2, null: false
@@ -128,7 +143,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_130000) do
     t.string "city", limit: 100
     t.string "online_url"
     t.string "banner_url"
-    t.string "status", limit: 20, default: "draft", null: false
+    t.string "status", limit: 30, default: "draft", null: false
     t.text "rejection_reason"
     t.datetime "submitted_at"
     t.datetime "published_at"
@@ -146,7 +161,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_130000) do
     t.index ["status"], name: "index_events_on_status"
     t.check_constraint "end_at > start_at", name: "chk_events_end_after_start"
     t.check_constraint "location_type IS NULL OR (location_type::text = ANY (ARRAY['offline'::character varying::text, 'online'::character varying::text]))", name: "chk_events_location_type"
-    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'under_review'::character varying::text, 'published'::character varying::text, 'rejected'::character varying::text, 'cancelled'::character varying::text])", name: "chk_events_status"
+    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'under_review'::character varying::text, 'published'::character varying::text, 'rejected'::character varying::text, 'cancelled'::character varying::text, 'cancelled_by_organizer'::character varying::text])", name: "chk_events_status"
   end
 
   create_table "moderation_logs", force: :cascade do |t|
@@ -161,6 +176,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_130000) do
     t.index ["moderator_id"], name: "index_moderation_logs_on_moderator_id"
     t.check_constraint "decision::text = ANY (ARRAY['approved'::character varying::text, 'rejected'::character varying::text, 'blocked'::character varying::text, 'unblocked'::character varying::text, 'appeal_submitted'::character varying::text, 'appeal_accepted'::character varying::text, 'appeal_rejected'::character varying::text])", name: "chk_moderation_logs_decision"
     t.check_constraint "entity_type::text = ANY (ARRAY['User'::character varying::text, 'Organization'::character varying::text, 'Event'::character varying::text, 'Appeal'::character varying::text])", name: "chk_moderation_logs_entity_type"
+  end
+
+  create_table "order_items", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.bigint "ticket_type_id", null: false
+    t.integer "quantity", null: false
+    t.integer "unit_price", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["ticket_type_id"], name: "index_order_items_on_ticket_type_id"
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "event_id", null: false
+    t.integer "total_amount", null: false
+    t.string "currency", default: "980", null: false
+    t.string "status", default: "pending", null: false
+    t.string "idempotency_key", null: false
+    t.datetime "reserved_until"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_orders_on_event_id"
+    t.index ["idempotency_key"], name: "index_orders_on_idempotency_key", unique: true
+    t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
   create_table "organization_translations", force: :cascade do |t|
@@ -260,12 +301,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_130000) do
   add_foreign_key "company_members", "users", column: "added_by_id", on_delete: :nullify
   add_foreign_key "company_members", "users", on_delete: :cascade
   add_foreign_key "event_media", "events", on_delete: :cascade
+  add_foreign_key "event_status_histories", "events", on_delete: :cascade
+  add_foreign_key "event_status_histories", "users", column: "changed_by_id", on_delete: :nullify
   add_foreign_key "event_translations", "events", on_delete: :cascade
   add_foreign_key "events", "categories", on_delete: :restrict
   add_foreign_key "events", "organizations", on_delete: :restrict
   add_foreign_key "events", "users", column: "created_by_id", on_delete: :restrict
   add_foreign_key "events", "users", column: "reviewed_by_id", on_delete: :nullify
   add_foreign_key "moderation_logs", "users", column: "moderator_id", on_delete: :nullify
+  add_foreign_key "order_items", "orders"
+  add_foreign_key "orders", "events"
+  add_foreign_key "orders", "users"
   add_foreign_key "organization_translations", "organizations", on_delete: :cascade
   add_foreign_key "organizations", "users", column: "approved_by_id", on_delete: :nullify
   add_foreign_key "organizations", "users", column: "blocked_by_id", on_delete: :nullify

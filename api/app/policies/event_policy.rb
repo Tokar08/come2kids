@@ -12,9 +12,23 @@ class EventPolicy < ApplicationPolicy
     organization_member?(record)
   end
 
-  # Media can change only while the event is editable and its organization may still change events
-  # (approved, not blocked or deleted).
+  # Draft and rejected events can be edited by staff of an organization that may still change events.
+  def update?
+    editable_event?
+  end
+
+  # Media follows the same rule as editing (approved, not blocked or deleted organization; editable status).
   def manage_media?
+    editable_event?
+  end
+
+  def submit?
+    create?
+  end
+
+  private
+
+  def editable_event?
     organization = organization_for(record)
     return false unless organization&.accepts_event_changes?
     return false unless organization_member?(record)

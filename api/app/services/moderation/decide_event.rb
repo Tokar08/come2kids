@@ -27,6 +27,8 @@ module Moderation
       ensure_organization_can_publish! if decision == 'approved'
 
       event.update!(decision == 'approved' ? publish_attributes : reject_attributes)
+      # US-5.3: every status change is recorded in event_status_histories.
+      Events::Transition.record!(event: event, from: 'under_review', to: event.status, actor: moderator, reason: reason)
       ModerationLog.record!(entity: event, moderator: moderator, decision: decision, reason: reason)
 
       notify(:event_decision, event, decision, reason)

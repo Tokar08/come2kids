@@ -83,6 +83,8 @@ RSpec.describe 'Moderation: events', type: :request do
               expect(event.published_at).to be_present
               expect(Event.publicly_visible).to include(event)
               expect(ModerationLog.for_entity(event).last.decision).to eq('approved')
+            expect(event.event_status_histories.last)
+              .to have_attributes(from_status: 'under_review', to_status: 'published', changed_by_id: moderator.id)
             end
           end
 
@@ -164,6 +166,8 @@ RSpec.describe 'Moderation: events', type: :request do
           context 'with a reason' do
             run_test! do
               expect(event.reload).to have_attributes(status: 'rejected', rejection_reason: 'Missing description')
+            expect(event.event_status_histories.last)
+              .to have_attributes(to_status: 'rejected', reason: 'Missing description')
             end
           end
 
