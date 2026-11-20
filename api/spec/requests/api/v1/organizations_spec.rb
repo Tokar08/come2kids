@@ -3,7 +3,7 @@
 require 'swagger_helper'
 
 RSpec.describe 'Api::V1::Organizations', type: :request do
-  before(:each) do
+  before do
     Role.find_or_create_by(key: 'owner') do |role|
       role.name_uk = 'Власник'
       role.name_en = 'Owner'
@@ -15,9 +15,8 @@ RSpec.describe 'Api::V1::Organizations', type: :request do
       tags 'Organizations'
       consumes 'application/json'
 
-      parameter name: :Authorization, in: :header, type: :string, required: true, description: 'Bearer token'
+      parameter name: :authorization, in: :header, type: :string, required: true, description: 'Bearer token'
 
-      # ✅ Змінюємо назву параметра на :body і вказуємо вкладену структуру
       parameter name: :body, in: :body, schema: {
         type: :object,
         properties: {
@@ -36,7 +35,7 @@ RSpec.describe 'Api::V1::Organizations', type: :request do
 
       response '201', 'Organization request created successfully' do
         let(:user) { create(:user) }
-        let(:Authorization) { "Bearer #{JwtService.encode(user)}" }
+        let(:authorization) { "Bearer #{JwtService.encode(user)}" }
 
         let(:body) do
           {
@@ -53,7 +52,7 @@ RSpec.describe 'Api::V1::Organizations', type: :request do
 
       response '422', 'Validation failed or user is already an owner' do
         let(:user) { create(:user) }
-        let(:Authorization) { "Bearer #{JwtService.encode(user)}" }
+        let(:authorization) { "Bearer #{JwtService.encode(user)}" }
 
         let(:body) do
           {
@@ -69,7 +68,7 @@ RSpec.describe 'Api::V1::Organizations', type: :request do
       end
 
       response '401', 'Unauthorized' do
-        let(:Authorization) { 'Bearer invalid_token' }
+        let(:authorization) { 'Bearer invalid_token' }
 
         let(:body) do
           {
