@@ -10,7 +10,21 @@ class EventPolicy < ApplicationPolicy
     organization_member?(record)
   end
 
+  def update?
+    editable_event?
+  end
+
   def manage_media?
+    editable_event?
+  end
+
+  def submit?
+    create?
+  end
+
+  private
+
+  def editable_event?
     organization = organization_for(record)
     return false unless organization&.approved?
     return false unless organization_member?(record)
