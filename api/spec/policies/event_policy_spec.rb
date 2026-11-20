@@ -158,4 +158,19 @@ RSpec.describe EventPolicy do
       expect(stranger.submit?).to be(false)
     end
   end
+
+  describe "#revise?" do
+    let(:event) { build(:event, organization: organization, status: "published") }
+    let(:user) { create(:company_member, :owner, organization: organization).user }
+
+    it "allows an owner to revise a published event" do
+      expect(policy.revise?).to be(true)
+    end
+
+    it "denies a revision of a draft" do
+      event.status = "draft"
+
+      expect(policy.revise?).to be(false)
+    end
+  end
 end

@@ -50,6 +50,7 @@ Rails.application.routes.draw do
       resources :organizations, only: [] do
         resources :events, only: %i[create update], module: :organizations do
           member { post :submit }
+          resource :revision, only: :destroy
           resources :images, only: %i[create destroy] do
             collection { patch :order }
           end

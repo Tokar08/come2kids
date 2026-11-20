@@ -26,13 +26,20 @@ module Api
 
         def update
           event = find_event
-          authorize event, :update?
+          if event.published?
+            authorize event, :revise?
+            result = ::Events::Revisions::Upsert.call(event: event, actor: current_user, attributes: event_params)
+            return render_record_errors(result.failure) if result.failure?
 
-          result = ::Events::UpdateDraft.call(event: event, attributes: event_params)
-          if result.success?
-            render_resource(result.value!, blueprint: Api::EventBlueprint, view: :managed)
+            render_resource(result.value!, blueprint: Api::EventRevisionBlueprint)
           else
-            render_record_errors(result.failure)
+            authorize event, :update?
+            result = ::Events::UpdateDraft.call(event: event, attributes: event_params)
+            if result.success?
+              render_resource(result.value!, blueprint: Api::EventBlueprint, view: :managed)
+            else
+              render_record_errors(result.failure)
+            end
           end
         end
 
@@ -62,7 +69,8 @@ module Api
             :category_id, :start_at, :end_at, :time_zone, :location_type,
             :address, :city, :online_url,
             translations: %i[locale title description],
-            ticket_types: %i[name price total_quantity sale_start_at sale_end_at]
+            ticket_types: %i[id name price total_quantity sale_start_at sale_end_at],
+            images: %i[id kind position]
           )
         end
 
