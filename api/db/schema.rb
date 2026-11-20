@@ -128,6 +128,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_130000) do
     t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'under_review'::character varying::text, 'published'::character varying::text, 'rejected'::character varying::text, 'cancelled'::character varying::text])", name: "chk_events_status"
   end
 
+  create_table "order_items", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.bigint "ticket_type_id", null: false
+    t.integer "quantity", null: false
+    t.integer "unit_price", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["ticket_type_id"], name: "index_order_items_on_ticket_type_id"
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "event_id", null: false
+    t.integer "total_amount", null: false
+    t.string "currency", default: "980", null: false
+    t.string "status", default: "pending", null: false
+    t.string "idempotency_key", null: false
+    t.datetime "reserved_until"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_orders_on_event_id"
+    t.index ["idempotency_key"], name: "index_orders_on_idempotency_key", unique: true
+    t.index ["user_id"], name: "index_orders_on_user_id"
+  end
+
   create_table "organization_translations", force: :cascade do |t|
     t.bigint "organization_id", null: false
     t.string "locale", limit: 2, null: false
@@ -228,6 +254,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_130000) do
   add_foreign_key "events", "organizations", on_delete: :restrict
   add_foreign_key "events", "users", column: "created_by_id", on_delete: :restrict
   add_foreign_key "events", "users", column: "reviewed_by_id", on_delete: :nullify
+  add_foreign_key "order_items", "orders"
+  add_foreign_key "orders", "events"
+  add_foreign_key "orders", "users"
   add_foreign_key "organization_translations", "organizations", on_delete: :cascade
   add_foreign_key "organizations", "users", column: "approved_by_id", on_delete: :nullify
   add_foreign_key "organizations", "users", column: "blocked_by_id", on_delete: :nullify

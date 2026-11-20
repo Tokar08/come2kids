@@ -55,6 +55,10 @@ Rails.application.routes.draw do
         end
       end
 
+      resources :events, only: [] do
+        resources :orders, only: [:create]
+      end
+
       if Rails.env.development?
         namespace :dev do
           post 'confirmation-token', to: 'tokens#confirmation_token'
