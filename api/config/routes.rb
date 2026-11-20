@@ -95,6 +95,7 @@ Rails.application.routes.draw do
           resources :images, only: %i[create destroy] do
             collection { patch :order }
           end
+          resources :tickets, only: :index, module: :events
         end
       end
 
