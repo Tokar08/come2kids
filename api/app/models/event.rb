@@ -13,6 +13,8 @@ class Event < ApplicationRecord
   has_many :event_media, class_name: 'EventMedia', dependent: :destroy
   has_many :ticket_types, dependent: :destroy
   has_many :event_status_histories, dependent: :destroy
+  has_many :event_revisions, dependent: :destroy
+  has_one :pending_revision, -> { where(status: 'under_review') }, class_name: 'EventRevision'
 
   validates :status, inclusion: { in: STATUSES }
   validates :location_type, inclusion: { in: LOCATION_TYPES }, allow_nil: true

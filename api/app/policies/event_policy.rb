@@ -26,6 +26,13 @@ class EventPolicy < ApplicationPolicy
     create?
   end
 
+  def revise?
+    return false unless organization_for(record)&.approved?
+    return false unless organization_member?(record)
+
+    record.published?
+  end
+
   private
 
   def editable_event?

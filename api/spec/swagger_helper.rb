@@ -256,6 +256,24 @@ RSpec.configure do |config|
             type: :object,
             properties: { data: { '$ref' => '#/components/schemas/managedEvent' } },
             required: %w[data]
+          },
+          eventRevision: {
+            type: :object,
+            properties: {
+              id: { type: :integer },
+              status: { type: :string, example: "under_review" },
+              payload: { type: :object },
+              submitted_by_id: { type: :integer },
+              reviewed_by_id: { type: :integer, nullable: true },
+              reviewed_at: { type: :string, format: "date-time", nullable: true },
+              rejection_reason: { type: :string, nullable: true }
+            },
+            required: %w[id status payload]
+          },
+          eventRevisionResponse: {
+            type: :object,
+            properties: { data: { "$ref" => "#/components/schemas/eventRevision" } },
+            required: %w[data]
           }
         }
       }
