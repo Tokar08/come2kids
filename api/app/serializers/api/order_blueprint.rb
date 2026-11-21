@@ -16,5 +16,6 @@ module Api
     field :created_at do |order|
       order.created_at&.utc&.iso8601(3)
     end
+    association :tickets, blueprint: Api::TicketBlueprint
   end
 end

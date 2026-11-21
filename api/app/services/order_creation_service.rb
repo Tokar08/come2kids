@@ -59,13 +59,15 @@ class OrderCreationService
         reserved_until: reserved_until
       )
 
-      order.order_items.create!(
+    order_item = order.order_items.create!(
         ticket_type: ticket_type,
         quantity: @quantity,
         unit_price: ticket_type.price
       )
 
       ticket_type.update!(sold_quantity: ticket_type.sold_quantity + @quantity)
+
+      issue_tickets(order_item) if order.paid?
 
       order
     end
@@ -82,4 +84,13 @@ class OrderCreationService
     end
     order
   end
+  def issue_tickets(order_item)
+    @quantity.times do
+      order_item.tickets.create!(
+        user: @user,
+        event: @event
+      )
+    end
+  end
 end
+
