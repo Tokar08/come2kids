@@ -4,6 +4,7 @@ module Api
   module V1
     class OrganizationsController < ApplicationController
       before_action :authenticate_user!
+      before_action :set_organization, only: [ :update ]
       after_action :verify_authorized
 
       def create
@@ -27,10 +28,45 @@ module Api
         end
       end
 
+      def update
+        authorize @organization
+
+        result = ::Organizations::Update.call(
+          organization: @organization,
+          user: current_user,
+          name: organization_params[:name],
+          description: organization_params[:description],
+          contact_email: organization_params[:contact_email],
+          phone: organization_params[:phone],
+          website: organization_params[:website],
+          address: organization_params[:address],
+          city: organization_params[:city]
+        )
+
+        case result
+        when Dry::Monads::Success
+          render json: {
+            message: I18n.t('organizations.updated'),
+            organization: result.value!.as_json(
+              only: %i[id slug status contact_email phone website address city]
+            )
+          }, status: :ok
+        when Dry::Monads::Failure
+          handle_failure(result.failure)
+        end
+      end
+
       private
 
+      def set_organization
+        @organization = Organization.find(params[:id])
+      end
+
       def organization_params
-        params.require(:organization).permit(:name, :description, :contact_email)
+        params.require(:organization).permit(
+          :name, :description, :contact_email,
+          :phone, :website, :address, :city
+        )
       end
 
       def handle_failure(error)
@@ -57,7 +93,7 @@ module Api
           details = case error
           when Hash then [ { field: 'base', error: error.to_s } ]
           when String then [ { field: 'base', error: error } ]
-          else [ { field: 'base', error: 'Невідома помилка валідації' } ]
+          else [ { field: 'base', error: I18n.t('api_errors.validation_error') } ]
           end
 
           render json: {
