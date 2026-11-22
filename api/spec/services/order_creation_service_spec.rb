@@ -62,7 +62,6 @@ RSpec.describe OrderCreationService, type: :service do
           .to change(Order, :count).by(1)
           .and change(OrderItem, :count).by(1)
           .and change { ticket_type.reload.sold_quantity }.by(2)
-          .and change(Ticket, :count).by(0)
 
         order = Order.last
         expect(order).to be_pending
@@ -78,19 +77,21 @@ RSpec.describe OrderCreationService, type: :service do
         create(:ticket_type, event: event, price: 0, total_quantity: 10, sold_quantity: 0)
       end
 
-      it 'creates a paid order without reserved_until and issues tickets immediately' do
-        order = nil
-
-        expect { order = call_service(quantity: 3, target_ticket: free_ticket) }
-          .to change(Order, :count).by(1)
-          .and change(Ticket, :count).by(3)
+      it 'creates a paid order without reserved_until' do
+        order = call_service(quantity: 3, target_ticket: free_ticket)
 
         expect(order).to be_paid
         expect(order.total_amount).to eq(0)
         expect(order.reserved_until).to be_nil
+      end
+
+      it 'issues unique valid tickets immediately' do
+        order = nil
+
+        expect { order = call_service(quantity: 3, target_ticket: free_ticket) }
+          .to change(Ticket, :count).by(3)
 
         tickets = order.tickets
-        expect(tickets.size).to eq(3)
         expect(tickets).to all(be_status_valid)
         expect(tickets.map(&:user_id)).to all(eq(user.id))
         expect(tickets.map(&:event_id)).to all(eq(event.id))

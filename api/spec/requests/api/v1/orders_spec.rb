@@ -82,11 +82,30 @@ RSpec.describe 'Api::V1::Orders', type: :request do
              headers: headers
 
         expect(response).to have_http_status(:created)
-        expect(response.parsed_body.fetch('data')).to include('amountMinor' => 600, 'status' => 'pending')
-        expect(response.parsed_body.fetch('data')).not_to have_key('idempotency_key')
-        expect(response.parsed_body.fetch('data')).not_to have_key('total_amount')
+        data = response.parsed_body.fetch('data')
+        expect(data).to include('amountMinor' => 600, 'status' => 'pending', 'tickets' => [])
+        expect(data).not_to have_key('idempotency_key')
+        expect(data).not_to have_key('total_amount')
         expect(Order.count).to eq(1)
         expect(ticket_type.reload.sold_quantity).to eq(3)
+      end
+
+      it 'creates a paid order and returns issued tickets for free ticket types' do
+        free_ticket = create(:ticket_type, event: published_event, price: 0, currency: 'UAH', total_quantity: 10, sold_quantity: 0)
+
+        post "/api/v1/events/#{published_event.id}/orders",
+             params: { ticket_type_id: free_ticket.id, quantity: 2 },
+             headers: headers
+
+        expect(response).to have_http_status(:created)
+        data = response.parsed_body.fetch('data')
+        expect(data).to include('amountMinor' => 0, 'status' => 'paid', 'reserved_until' => nil)
+
+        tickets = data.fetch('tickets')
+        expect(tickets.size).to eq(2)
+        expect(tickets).to all(include('id' => be_present, 'code' => /\ATKT-[A-Z0-9]{10}\z/, 'qr_token' => be_present, 'status' => 'valid', 'issued_at' => be_present))
+        expect(Ticket.count).to eq(2)
+        expect(free_ticket.reload.sold_quantity).to eq(2)
       end
     end
 
