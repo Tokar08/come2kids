@@ -131,4 +131,69 @@ RSpec.describe 'Api::V1::Orders', type: :request do
       end
     end
   end
+
+  describe 'GET /api/v1/orders/my' do
+    it 'returns 401 Unauthorized without token' do
+      get '/api/v1/orders/my'
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it 'returns only current user orders with pagination' do
+      my_paid = create(:order, user: user, event: published_event, status: 'paid')
+      my_pending = create(:order, user: user, event: published_event, status: 'pending')
+      create(:order, user: create(:user), event: published_event, status: 'paid')
+
+      get '/api/v1/orders/my', headers: headers
+
+      expect(response).to have_http_status(:ok)
+      ids = response.parsed_body.fetch('data').map { |item| item['id'] }
+      expect(ids).to contain_exactly(my_paid.id, my_pending.id)
+      expect(response.parsed_body.fetch('pagination')).to include('totalCount' => 2, 'page' => 1)
+    end
+
+    it 'filters orders by status' do
+      my_paid = create(:order, user: user, event: published_event, status: 'paid')
+      create(:order, user: user, event: published_event, status: 'pending')
+
+      get '/api/v1/orders/my', params: { status: 'paid' }, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      ids = response.parsed_body.fetch('data').map { |item| item['id'] }
+      expect(ids).to eq([ my_paid.id ])
+    end
+  end
+
+  describe 'GET /api/v1/orders/:id' do
+    let(:order) { create(:order, user: user, event: published_event, status: 'paid') }
+
+    it 'returns 401 Unauthorized without token' do
+      get "/api/v1/orders/#{order.id}"
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it 'returns order details for the owner' do
+      get "/api/v1/orders/#{order.id}", headers: headers
+
+      expect(response).to have_http_status(:ok)
+      data = response.parsed_body.fetch('data')
+      expect(data).to include('id' => order.id, 'event_id' => published_event.id, 'status' => 'paid')
+    end
+
+    it 'returns 403 Forbidden for another user order' do
+      other_order = create(:order, user: create(:user), event: published_event)
+
+      get "/api/v1/orders/#{other_order.id}", headers: headers
+
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it 'returns 404 Not Found for nonexistent order' do
+      get '/api/v1/orders/999999', headers: headers
+
+      expect(response).to have_http_status(:not_found)
+      expect(response.parsed_body['code']).to eq('NOT_FOUND')
+    end
+  end
 end
