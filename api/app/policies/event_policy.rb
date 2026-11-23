@@ -33,6 +33,14 @@ class EventPolicy < ApplicationPolicy
     organization_member?(record)
   end
 
+  def index?
+    organization_member?(record)
+  end
+
+  def participants?
+    organization_member?(record)
+  end
+
   def revise?
     return false unless organization_for(record)&.approved?
     return false unless organization_member?(record)
