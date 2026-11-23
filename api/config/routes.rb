@@ -89,7 +89,7 @@ Rails.application.routes.draw do
 
       # Organization events (US-5.1)
       resources :organizations, only: [:create, :update] do
-        resources :events, only: %i[index create update], module: :organizations do
+        resources :events, only: %i[index create update destroy], module: :organizations do
           member { post :submit }
           resource :revision, only: :destroy
           resources :images, only: %i[create destroy] do

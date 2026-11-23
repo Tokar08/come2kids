@@ -26,6 +26,13 @@ class EventPolicy < ApplicationPolicy
     create?
   end
 
+  def destroy?
+    organization = organization_for(record)
+    return false unless organization&.accepts_event_changes?
+
+    organization_member?(record)
+  end
+
   def index?
     organization_member?(record)
   end
