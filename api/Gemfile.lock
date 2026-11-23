@@ -241,7 +241,7 @@ GEM
       racc (~> 1.4)
     ostruct (0.6.3)
     parallel (2.3.0)
-    parser (3.3.13.0)
+    parser (3.3.14.0)
       ast (~> 2.4.1)
       racc
     pg (1.7.0)
@@ -252,7 +252,11 @@ GEM
     pp (0.6.4)
       prettyprint
     prettyprint (0.2.1)
-    prism (1.9.0)
+    prism (2.1.0)
+    prism (2.1.0-aarch64-linux-gnu)
+    prism (2.1.0-arm64-darwin)
+    prism (2.1.0-x64-mingw-ucrt)
+    prism (2.1.0-x86_64-linux-gnu)
     public_suffix (7.0.5)
     puma (8.1.2)
       nio4r (~> 2.0)
@@ -319,7 +323,7 @@ GEM
       redis-client (= 0.30.1)
     redis-client (0.30.1)
       connection_pool
-    regexp_parser (2.13.1)
+    regexp_parser (2.13.4)
     reline (0.7.0)
       io-console (~> 0.5)
     rexml (3.4.4)
@@ -351,7 +355,7 @@ GEM
     rswag-ui (2.17.0)
       actionpack (>= 5.2, < 8.2)
       railties (>= 5.2, < 8.2)
-    rubocop (1.92.2)
+    rubocop (1.92.3)
       json (>= 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
@@ -362,9 +366,11 @@ GEM
       rubocop-ast (>= 1.49.0, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 4.0)
-    rubocop-ast (1.50.0)
+    rubocop-ast (1.53.0)
+      ast (~> 2.4)
       parser (>= 3.3.7.2)
-      prism (~> 1.7)
+      prism (>= 1.7)
+      racc
     rubocop-performance (1.27.0)
       lint_roller (~> 1.1)
       rubocop (>= 1.89.0, < 2.0)
@@ -578,7 +584,7 @@ CHECKSUMS
   nokogiri (1.19.7-x86_64-linux-gnu) sha256=25865ccb462f714e712fdf8906fde07849cb6704a808e3d629d75baa5af5dd3b
   ostruct (0.6.3) sha256=95a2ed4a4bd1d190784e666b47b2d3f078e4a9efda2fccf18f84ddc6538ed912
   parallel (2.3.0) sha256=f75a3e904101ce6a1ccb6b8dc800cbafd42166d83330192438dcf29395167a6f
-  parser (3.3.13.0) sha256=e02f9b63c2fe05b0c68f692ba4df89b3cb113b663964f75d988fbebfd6c3deca
+  parser (3.3.14.0) sha256=62f8f76af7b919425ee2d811880e9dcb8011ab40bfd59970dfb583141697e58f
   pg (1.7.0) sha256=f7b536501284e883d4c9ef86dbde0313063e4aaafc23575b0017b0d572a26afb
   pg (1.7.0-aarch64-linux) sha256=101dd3a261000eb64b03ff41a5890674b735b626dbdce88652969b59fb0b1157
   pg (1.7.0-arm64-darwin) sha256=9fa895bbe28bdd579b83ccc80464c01d1015ea7549a7919134c9f8f10c060e4b
@@ -586,7 +592,11 @@ CHECKSUMS
   pg (1.7.0-x86_64-linux) sha256=d0a24f448b3c874c8b2658d4efbbbefce7315c228ede84f6f6f42089d1d704b6
   pp (0.6.4) sha256=dfcb0fce700c41456265922884f9fe195d7fbb0674a3578e6c0f69588e82b570
   prettyprint (0.2.1) sha256=d555d57ea6d7cf001d4774b693546a6bd88bec1e778ddffb5c60b68ceec4b7d4
-  prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85
+  prism (2.1.0) sha256=1c0a7c6dea0e93183390fb123f007564dbe663198e2f86ad87204151147601f3
+  prism (2.1.0-aarch64-linux-gnu) sha256=808dddc72def68e1a0463689414c97e0ba211938eddbab05387a4844aa2b3ec2
+  prism (2.1.0-arm64-darwin) sha256=2d0c2e3e011cfd89c041940907d3ff3def379d7b0f2ba158d1d42238e8ad8afc
+  prism (2.1.0-x64-mingw-ucrt) sha256=9cd54b1d4f645cb89fc28d17b7a35e7bdc018e1c93a1d499b09d37f14498235f
+  prism (2.1.0-x86_64-linux-gnu) sha256=b2b647afce09551e650b8bb3e2fc91d7d73d392a09534ca307ec0d619c33bfd4
   public_suffix (7.0.5) sha256=1a8bb08f1bbea19228d3bed6e5ed908d1cb4f7c2726d18bd9cadf60bc676f623
   puma (8.1.2) sha256=3a6d9a34c9a4d0175eabd11b703939b5d43ebe08bc2534ac7dfd4df33a6ceedc
   pundit (2.5.2) sha256=e374152baa24f90b630428293faf4b4c5468fc3cc010165f7d8fcb44ce108bbd
@@ -608,7 +618,7 @@ CHECKSUMS
   rdoc (8.1.0) sha256=befc37880a5cfd36dcb176c748b5fd5ee39dd3536a75e81824e4972ce230f60a
   redis (6.0.0) sha256=de71c10edd106986b759ec7ecdd08b63b9c0ee7414a0d0c1da73d31ba2bccda6
   redis-client (0.30.1) sha256=5151bc5c7bbfe48623732cdae3b900d8a22dc691cc7cdfacfb351ac55116522d
-  regexp_parser (2.13.1) sha256=5aedb6b7c35688f51e86eef17a15374dfd287c83f4ca644b2c5f3ec50a33b44b
+  regexp_parser (2.13.4) sha256=1d0547814f57e6f00946957bd0ca201bc42f42cfb08eee89df60998aedcd8a3b
   reline (0.7.0) sha256=5b012d8e55dbf9d450f12bde2cf7d15ff546ae80b3f8f3b30e570d431815583d
   rexml (3.4.4) sha256=19e0a2c3425dfbf2d4fc1189747bdb2f849b6c5e74180401b15734bc97b5d142
   rspec-core (3.13.7) sha256=c64ff16d9788119805cbc6a3f4b6d87cc22417c2d25976a3330de136896b5469
@@ -619,8 +629,8 @@ CHECKSUMS
   rswag-api (2.17.0) sha256=728b336b65168ab8ab6024b0e5d267b485c22ccdeb9dfbfb6ec3bac423545a13
   rswag-specs (2.17.0) sha256=a3b2bdf6df89f8741fe4a4ee47ceb1e77dc13e1c96bbe07352117d6e61afa9e3
   rswag-ui (2.17.0) sha256=5f707b9b5e8171ddf9f519f6e401e79e419bd1d07387508603e76124f2443212
-  rubocop (1.92.2) sha256=14fb31eed143a0dc6f78186c550c1715e81cd38f59d05d1165050e445c1f5382
-  rubocop-ast (1.50.0) sha256=b9ca88300da0803ee222ad20cdb30494c0a784eed06fdc35d254b06d662788db
+  rubocop (1.92.3) sha256=fd77feac46e8e91c3a534f868a1702c59f5bf8173515fd00a3c6ce1198672ff6
+  rubocop-ast (1.53.0) sha256=027984d28485d6502ae4c72f9341080f54f538599f5dbb54f81875a4ddcad574
   rubocop-performance (1.27.0) sha256=eeeb1374d062a368ee1c787b70eb0b0cc4b184cb1f8565f424760946146d61ce
   rubocop-rails (2.38.0) sha256=6e2b7c532efa95e3050371bec20b8f5b025662acead8bc70ee31f0e3e6fa2f06
   rubocop-rails-omakase (1.1.0) sha256=2af73ac8ee5852de2919abbd2618af9c15c19b512c4cfc1f9a5d3b6ef009109d
