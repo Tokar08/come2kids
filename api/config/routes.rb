@@ -87,7 +87,7 @@ Rails.application.routes.draw do
         resources :logs, only: :index
       end
 
-      # Organization events (US-5.1)
+      # Organization creation (US-3.1) & Organization events (US-5.1)
       resources :organizations, only: [:create, :update] do
         resources :events, only: %i[create update], module: :organizations do
           member { post :submit }
