@@ -19,7 +19,6 @@ RSpec.describe 'Api::V1::Organizations', type: :request do
       security [ bearerAuth: [] ]
 
       parameter name: :id, in: :path, type: :integer, required: true, description: 'Organization ID'
-      # parameter name: :authorization, in: :header, type: :string, required: true, description: 'Bearer token'
       parameter name: 'Authorization', in: :header, type: :string, required: false, getter: :authorization,
                 description: 'Bearer access token'
       parameter name: :body, in: :body, schema: {
