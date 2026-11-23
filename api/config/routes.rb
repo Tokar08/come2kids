@@ -88,7 +88,7 @@ Rails.application.routes.draw do
       end
 
       # Organization events (US-5.1)
-      resources :organizations, only: [:create, :update] do
+      resources :organizations, only: [ :create, :update ] do
         resources :events, only: %i[index create update destroy], module: :organizations do
           member { post :submit }
           resource :revision, only: :destroy
@@ -109,6 +109,9 @@ Rails.application.routes.draw do
 
       resources :tickets, only: [ :show ] do
         get :my, on: :collection
+        member do
+          get :qr
+        end
       end
 
       if Rails.env.development?

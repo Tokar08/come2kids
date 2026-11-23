@@ -8,4 +8,8 @@ class TicketPolicy < ApplicationPolicy
   def show?
     user.present? && record.user_id == user.id
   end
+
+  def qr?
+    record.user_id == user.id
+  end
 end
