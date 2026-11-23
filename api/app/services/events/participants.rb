@@ -48,7 +48,8 @@ module Events
       sql = <<~SQL.squish
         FROM tickets
         LEFT JOIN users ON users.id = tickets.user_id
-        LEFT JOIN ticket_types ON ticket_types.id = tickets.ticket_type_id
+        LEFT JOIN order_items ON order_items.id = tickets.order_item_id
+        LEFT JOIN ticket_types ON ticket_types.id = order_items.ticket_type_id
         WHERE tickets.event_id = ?
       SQL
       return sql if @search.blank?
