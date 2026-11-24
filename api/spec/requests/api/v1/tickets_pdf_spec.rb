@@ -15,6 +15,7 @@ RSpec.describe 'Api::V1::Tickets PDF', type: :request do
     expect(response.media_type).to eq('application/pdf')
     expect(response.body.byteslice(0, 5)).to eq('%PDF-')
     expect(response.headers['Content-Disposition']).to include("ticket-#{ticket.code}.pdf")
+    expect(response.headers['Cache-Control']).to include('no-store')
   end
 
   it 'rejects anonymous' do
@@ -31,5 +32,19 @@ RSpec.describe 'Api::V1::Tickets PDF', type: :request do
   it 'returns 404 for missing ticket' do
     get '/api/v1/tickets/999999/pdf', headers: headers
     expect(response).to have_http_status(:not_found)
+  end
+
+  it 'logs the ticket download' do
+    expect {
+      get "/api/v1/tickets/#{ticket.id}/pdf", headers: headers
+    }.to have_enqueued_job(ActivityLogJob).with(
+      hash_including(
+        'action' => 'ticket.download',
+        'entity_type' => 'Ticket',
+        'entity_id' => ticket.id.to_s,
+        'result' => 'success',
+        'user_id' => user.id
+      )
+    )
   end
 end

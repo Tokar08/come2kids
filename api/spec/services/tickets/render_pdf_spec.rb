@@ -35,4 +35,16 @@ RSpec.describe Tickets::RenderPdf do
     text = pdf_text(described_class.call(ticket))
     expect(text).to include('Майстер-клас з малювання')
   end
+
+  it 'shows the online link for online events' do
+    ticket.event.update!(location_type: 'online', online_url: 'https://meet.example.com/room')
+    text = pdf_text(described_class.call(ticket))
+    expect(text).to include('https://meet.example.com/room')
+  end
+
+  it 'includes ticket type and holder last name' do
+    text = pdf_text(described_class.call(ticket))
+    expect(text).to include(ticket.ticket_type.name)
+    expect(text).to include(ticket.user.last_name)
+  end
 end
