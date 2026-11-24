@@ -5,6 +5,8 @@ module Api
     class TicketsController < ApplicationController
       before_action :authenticate_user!
 
+      CONTENT_TYPES = { 'png' => 'image/png', 'svg' => 'image/svg+xml' }.freeze
+
       def my
         authorize Ticket
         tickets, pagination = paginate_collection(
@@ -22,6 +24,19 @@ module Api
         authorize ticket
 
         render_resource ticket, blueprint: Api::TicketBlueprint
+      end
+
+      def qr
+        ticket = Ticket.find(params[:id])
+        authorize ticket, :qr?
+
+        format = params[:format].presence || 'png'
+        result = Tickets::RenderQr.call(ticket, format: format)
+        raise Api::ApplicationError.new(code: Api::ErrorCodes::BAD_REQUEST, message: 'Unsupported QR format.') if result.failure?
+
+        response.set_header('Cache-Control', 'private, no-store')
+        send_data result.value!, type: CONTENT_TYPES.fetch(format), disposition: 'inline',
+                  filename: "ticket-#{ticket.code}.#{format}"
       end
 
       def pdf
