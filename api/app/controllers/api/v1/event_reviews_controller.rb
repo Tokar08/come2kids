@@ -6,6 +6,7 @@ module Api
       before_action :authenticate_user!, except: [ :index ]
 
       def index
+        authorize EventReview
         event = Event.find(params[:event_id])
         reviews, pagination = paginate_collection(
           event.event_reviews.includes(:user),
@@ -17,6 +18,7 @@ module Api
       end
 
       def create
+        authorize EventReview
         event = Event.find(params[:event_id])
 
         review = EventReviews::CreateService.new(
@@ -37,7 +39,7 @@ module Api
 
       def update
         review = EventReview.find(params[:id])
-        return render_forbidden unless review.user_id == current_user.id
+        authorize review
 
         review.update!(review_params)
         render_resource review, blueprint: Api::EventReviewBlueprint
@@ -45,7 +47,7 @@ module Api
 
       def destroy
         review = EventReview.find(params[:id])
-        return render_forbidden unless review.user_id == current_user.id
+        authorize review
 
         review.destroy!
         head :no_content
@@ -55,14 +57,6 @@ module Api
 
       def review_params
         params.permit(:rating, :text)
-      end
-
-      def render_forbidden
-        render_error(
-          code: 'FORBIDDEN',
-          message: 'You can only modify your own review',
-          status: :forbidden
-        )
       end
     end
   end
