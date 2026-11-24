@@ -23,6 +23,18 @@ module Api
 
         render_resource ticket, blueprint: Api::TicketBlueprint
       end
+
+      def pdf
+        ticket = Ticket.includes(:event, :ticket_type, :user).find(params[:id])
+        authorize ticket, :pdf?
+
+        result = Tickets::RenderPdf.call(ticket)
+        raise result.failure if result.failure?
+
+        response.set_header('Cache-Control', 'private, no-store')
+        send_data result.value!, type: 'application/pdf', disposition: 'attachment',
+                  filename: "ticket-#{ticket.code}.pdf"
+      end
     end
   end
 end

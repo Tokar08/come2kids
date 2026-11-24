@@ -58,6 +58,8 @@ gem 'image_processing', '~> 2.2'
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 gem 'rack-cors'
 
+gem 'prawn', '~> 2.5'
+
 group :development, :test do
   gem 'factory_bot_rails'
 
@@ -81,6 +83,8 @@ group :development, :test do
   gem 'fiddle'
 
   gem 'faker', '~> 3.4'
+
+  gem 'pdf-reader', '~> 2.12'
 
   gem 'rspec-rails'
   gem 'rswag-api'
