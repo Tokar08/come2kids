@@ -112,6 +112,9 @@ Rails.application.routes.draw do
 
       resources :tickets, only: [ :show ] do
         get :my, on: :collection
+        member do
+          get :qr
+        end
       end
 
       if Rails.env.development?
