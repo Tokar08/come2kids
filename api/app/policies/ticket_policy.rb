@@ -12,4 +12,8 @@ class TicketPolicy < ApplicationPolicy
   def qr?
     record.user_id == user.id
   end
+
+  def pdf?
+    record.user_id == user.id
+  end
 end

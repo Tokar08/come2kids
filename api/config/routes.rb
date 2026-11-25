@@ -114,6 +114,7 @@ Rails.application.routes.draw do
         get :my, on: :collection
         member do
           get :qr
+          get :pdf
         end
       end
 
