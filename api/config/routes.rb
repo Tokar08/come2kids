@@ -101,7 +101,10 @@ Rails.application.routes.draw do
 
       resources :events, only: [] do
         resources :orders, only: [ :create ]
+        resources :reviews, only: %i[index create], controller: 'event_reviews'
       end
+
+      resources :reviews, only: %i[update destroy], controller: 'event_reviews'
 
       resources :orders, only: [ :show ] do
         get :my, on: :collection
