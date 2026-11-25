@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_24_142103) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_25_102242) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -234,6 +234,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_142103) do
     t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
+  create_table "organization_reviews", force: :cascade do |t|
+    t.bigint "organization_id", null: false
+    t.bigint "user_id", null: false
+    t.integer "rating", null: false
+    t.text "text"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id", "user_id"], name: "index_organization_reviews_on_organization_id_and_user_id", unique: true
+    t.index ["organization_id"], name: "index_organization_reviews_on_organization_id"
+    t.index ["user_id"], name: "index_organization_reviews_on_user_id"
+    t.check_constraint "rating >= 1 AND rating <= 5", name: "chk_organization_reviews_rating"
+  end
+
   create_table "organization_translations", force: :cascade do |t|
     t.bigint "organization_id", null: false
     t.string "locale", limit: 2, null: false
@@ -369,6 +382,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_142103) do
   add_foreign_key "order_items", "orders"
   add_foreign_key "orders", "events"
   add_foreign_key "orders", "users"
+  add_foreign_key "organization_reviews", "organizations", on_delete: :cascade
+  add_foreign_key "organization_reviews", "users", on_delete: :cascade
   add_foreign_key "organization_translations", "organizations", on_delete: :cascade
   add_foreign_key "organizations", "users", column: "approved_by_id", on_delete: :nullify
   add_foreign_key "organizations", "users", column: "blocked_by_id", on_delete: :nullify
