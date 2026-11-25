@@ -1,0 +1,12 @@
+uk:
+  tickets:
+    pdf:
+      title: "Квиток на подію"
+      event: "Подія"
+      date: "Дата та час"
+      location: "Місце"
+      ticket_type: "Тип квитка"
+      holder: "Власник"
+      code: "Код квитка"
+      scan_hint: "Покажіть цей QR-код на вході"
+      footer: "Come2Kids — квиток дійсний для однієї особи"

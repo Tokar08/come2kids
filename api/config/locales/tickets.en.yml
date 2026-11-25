@@ -1,0 +1,12 @@
+en:
+  tickets:
+    pdf:
+      title: "Event ticket"
+      event: "Event"
+      date: "Date & time"
+      location: "Location"
+      ticket_type: "Ticket type"
+      holder: "Holder"
+      code: "Ticket code"
+      scan_hint: "Show this QR code at the entrance"
+      footer: "Come2Kids — valid for one person"
