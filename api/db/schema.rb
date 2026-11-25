@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_21_170353) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_142103) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -101,6 +101,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_170353) do
     t.index ["event_id"], name: "index_event_media_on_event_id"
     t.check_constraint "\"position\" >= 0", name: "chk_event_media_position"
     t.check_constraint "kind::text = ANY (ARRAY['banner'::character varying, 'gallery'::character varying]::text[])", name: "chk_event_media_kind"
+  end
+
+  create_table "event_reviews", force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.bigint "user_id", null: false
+    t.integer "rating", null: false
+    t.text "text"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id", "user_id"], name: "index_event_reviews_on_event_id_and_user_id", unique: true
+    t.index ["event_id"], name: "index_event_reviews_on_event_id"
+    t.index ["user_id"], name: "index_event_reviews_on_user_id"
+    t.check_constraint "rating >= 1 AND rating <= 5", name: "chk_event_reviews_rating"
   end
 
   create_table "event_revisions", force: :cascade do |t|
@@ -340,6 +353,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_21_170353) do
   add_foreign_key "company_members", "users", column: "added_by_id", on_delete: :nullify
   add_foreign_key "company_members", "users", on_delete: :cascade
   add_foreign_key "event_media", "events", on_delete: :cascade
+  add_foreign_key "event_reviews", "events", on_delete: :cascade
+  add_foreign_key "event_reviews", "users", on_delete: :cascade
   add_foreign_key "event_revisions", "events", on_delete: :cascade
   add_foreign_key "event_revisions", "users", column: "reviewed_by_id", on_delete: :nullify
   add_foreign_key "event_revisions", "users", column: "submitted_by_id", on_delete: :restrict
