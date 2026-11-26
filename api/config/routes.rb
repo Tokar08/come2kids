@@ -63,6 +63,8 @@ Rails.application.routes.draw do
           end
         end
 
+
+
         resources :events, only: :index do
           member do
             post :approve
@@ -89,6 +91,7 @@ Rails.application.routes.draw do
 
       # Organization events (US-5.1)
       resources :organizations, only: [ :create, :update ] do
+        resources :reviews, only: %i[index create], controller: 'organization_reviews'
         resources :events, only: %i[index create update destroy], module: :organizations do
           member { post :submit }
           resource :revision, only: :destroy
@@ -105,6 +108,7 @@ Rails.application.routes.draw do
       end
 
       resources :reviews, only: %i[update destroy], controller: 'event_reviews'
+      resources :organization_reviews, only: %i[update destroy]
 
       resources :orders, only: [ :show ] do
         get :my, on: :collection
