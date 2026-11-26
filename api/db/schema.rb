@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_25_102242) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_25_203609) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -88,6 +88,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_102242) do
     t.index ["role_id"], name: "index_company_members_on_role_id"
     t.index ["user_id"], name: "idx_company_members_one_org_per_user", unique: true, where: "(role_id = 1)"
     t.index ["user_id"], name: "index_company_members_on_user_id"
+  end
+
+  create_table "email_outboxes", force: :cascade do |t|
+    t.string "to_email", null: false
+    t.string "template", null: false
+    t.string "dedup_key", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.string "status", default: "pending", null: false
+    t.integer "attempts", default: 0, null: false
+    t.text "last_error"
+    t.datetime "sent_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["dedup_key"], name: "index_email_outboxes_on_dedup_key", unique: true
+    t.index ["status", "created_at"], name: "index_email_outboxes_on_status_and_created_at"
+    t.check_constraint "status::text = ANY (ARRAY['pending'::character varying, 'sent'::character varying, 'failed'::character varying]::text[])", name: "chk_email_outboxes_status"
   end
 
   create_table "event_media", force: :cascade do |t|
