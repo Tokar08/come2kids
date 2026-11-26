@@ -29,10 +29,18 @@ module Api
         ).call
 
         render_resource review, blueprint: Api::OrganizationReviewBlueprint, status: :created
-      rescue OrganizationReviews::CreateService::AlreadyReviewedError => e
-        render_error(code: 'REVIEW_ALREADY_EXISTS', message: e.message, status: :conflict)
-      rescue OrganizationReviews::CreateService::AttendanceRequiredError => e
-        render_error(code: 'ATTENDANCE_REQUIRED', message: e.message, status: :forbidden)
+      rescue OrganizationReviews::CreateService::AlreadyReviewedError
+        render_error(
+          code: 'REVIEW_ALREADY_EXISTS',
+          message: I18n.t('api_errors.review_already_exists'),
+          status: :conflict
+        )
+      rescue OrganizationReviews::CreateService::AttendanceRequiredError
+        render_error(
+          code: 'ATTENDANCE_REQUIRED',
+          message: I18n.t('api_errors.attendance_required'),
+          status: :forbidden
+        )
       end
 
       def update
