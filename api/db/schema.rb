@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_25_203609) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_26_140406) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -198,6 +198,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_203609) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "average_rating", precision: 3, scale: 2
+    t.integer "reviews_count", default: 0, null: false
     t.index ["category_id"], name: "index_events_on_category_id"
     t.index ["city"], name: "index_events_on_city"
     t.index ["created_by_id"], name: "index_events_on_created_by_id"
@@ -207,6 +209,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_203609) do
     t.index ["status"], name: "index_events_on_status"
     t.check_constraint "end_at > start_at", name: "chk_events_end_after_start"
     t.check_constraint "location_type IS NULL OR (location_type::text = ANY (ARRAY['offline'::character varying::text, 'online'::character varying::text]))", name: "chk_events_location_type"
+    t.check_constraint "reviews_count >= 0", name: "chk_events_reviews_count"
     t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'under_review'::character varying::text, 'published'::character varying::text, 'rejected'::character varying::text, 'cancelled'::character varying::text, 'cancelled_by_organizer'::character varying::text])", name: "chk_events_status"
   end
 
@@ -293,10 +296,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_203609) do
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "average_rating", precision: 3, scale: 2
+    t.integer "reviews_count", default: 0, null: false
     t.index ["approved_by_id"], name: "index_organizations_on_approved_by_id"
     t.index ["blocked_by_id"], name: "index_organizations_on_blocked_by_id"
     t.index ["slug"], name: "index_organizations_on_slug_active", unique: true, where: "(deleted_at IS NULL)"
     t.index ["status"], name: "index_organizations_on_status"
+    t.check_constraint "reviews_count >= 0", name: "chk_organizations_reviews_count"
     t.check_constraint "status::text = ANY (ARRAY['pending_approval'::character varying::text, 'approved'::character varying::text, 'rejected'::character varying::text, 'blocked'::character varying::text])", name: "chk_organizations_status"
   end
 
